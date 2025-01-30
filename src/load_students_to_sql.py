@@ -7,7 +7,7 @@ def get_sql_connection():
         script_dir = os.path.dirname(os.path.abspath(__file__))
         db_path = os.path.join(script_dir, '../data/college_dev.db')
         print(f"Opening SQL connection to {db_path}")
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(db_path, timeout=10)
         return conn
 
     except Exception as e:
@@ -57,10 +57,10 @@ def cleardown_sql_table(cursor: sqlite3.Cursor):
 
 
 
-def write_to_sql(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
+def write_to_db_row_by_row(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
     """
-    Iterates over the given DataFrame and writes each row
-    to SQL table load_students.
+    Iterates over given DataFrame, writes each row to SQL table load_students.
+    This version executes an insert per row. Least efficient.
     """
     try:
         # Setup insert command (with value placeholders)
@@ -88,6 +88,40 @@ def write_to_sql(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
 
 
 
+def write_to_db_execute_many(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
+    """
+    Iterates over given DataFrame, writes each row to SQL table load_students.
+    This version executes all inserts in a single operation.
+    Faster than row_by_row but holds a lot of RAM.
+    """
+    try:
+        # Declare which csv columns to use as insert values
+        csv_cols = ['student_guid', 'first_names', 'last_name', 'dob', 'phone', 'email',
+                    'home_address', 'home_postcode', 'home_country',
+                    'term_address', 'term_postcode', 'term_country']
+
+        # Build array of tuples as values for db mass-insert
+        data_for_insert = csv_df[csv_cols].to_records(index=False)
+
+        # Setup insert command (with value placeholders)
+        insert_cmd = """
+            INSERT  INTO load_students
+                        (student_guid, first_names, last_name, dob, phone, email, home_addr, home_postcode, home_country,
+                        term_addr, term_postcode, term_country)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+
+        # bulk insert CSV data to load_students
+        cursor.executemany(insert_cmd, data_for_insert)
+
+        print(f"Wrote {len(csv_df)} rows to load_students")
+
+    except Exception as e:
+        print(f"Error writing CSV data to load_students: {e}")
+        raise
+
+
+
 def main():
     """
     Main function to load CSV of cleansed/transformed student data into SQL db. Steps are:
@@ -98,11 +132,15 @@ def main():
     """
     print("Started process to load student CSV to SQL.")
 
-    # Connect to database
-    conn = get_sql_connection()
-    cursor = conn.cursor()
+    # Declare here so guaranteed available in except/finally blocks
+    conn = None
+    cursor = None
 
     try:
+        # Connect to database
+        conn = get_sql_connection()
+        cursor = conn.cursor()
+
         # Read data from CSV file
         csv_df = read_student_csv_file()
 
@@ -110,17 +148,21 @@ def main():
         cleardown_sql_table(cursor)
 
         # Write CSV data to load_students table
-        write_to_sql(csv_df, cursor)
+#        write_to_db_row_by_row(csv_df, cursor)
+        write_to_db_execute_many(csv_df, cursor)
+        conn.commit()
 
         print("Student load complete")
     except Exception as e:
         # In case of error, rollback DB transaction and display error
-        conn.rollback()
+        if conn:
+            conn.rollback()
         print(f"DB transaction failed and rolled back: {e}")
     finally:
-        conn.close()
-
-
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 if __name__ == '__main__':
     main()
