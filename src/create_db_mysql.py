@@ -1,7 +1,5 @@
 # mysql is running in windows. Basic server info:
 # Server instance: MySQL92
-# user: root
-# url: localhost:3306
 """
 This module creates college database and tables.
 """
@@ -16,8 +14,9 @@ def get_config():
     try:
         script_path = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(script_path, '../data/config.json')
-        config_json = open(config_path)
-        return config_json
+        config_file = open(config_path, 'r')
+        config = json.load(config_file)
+        return config
     except Exception as e:
         print(f"Error opening config {config_path}: {e}")
         raise
@@ -29,11 +28,11 @@ def connect_to_db(config):
     print("Connecting to MySQL database...")
     try:
         conn = mysql.connector.connect(
-            host='192.168.80.206',
-            port=3306,
-            user='dev_user',
-            password='dev_user123!',
-            database='college_dev'
+            host=config['db_host'],
+            port=config['db_port'],
+            user=config['db_user'],
+            password=config['db_pwd'],
+            database=config['db_name']
             )
 
         print("Successfully connected to db")
@@ -73,7 +72,7 @@ def create_load_students_table(cursor):
             term_country VARCHAR(100),
             dob DATE
             );
-        """
+        """ 
     try:
         cursor.execute(create_student_table)
         print(f"Successfully checked or created table: {table_name}")

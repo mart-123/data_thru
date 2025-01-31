@@ -1,18 +1,51 @@
-import sqlite3
+import mysql.connector
+from mysql.connector import errorcode
+import mysql.connector.cursor
 import pandas as pd
+import json
 import os
 
-def get_sql_connection():
+
+def get_config():
+    """Reads json config file, returns contents as a dictionary"""
     try:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        db_path = os.path.join(script_dir, '../data/college_dev.db')
-        print(f"Opening SQL connection to {db_path}")
-        conn = sqlite3.connect(db_path, timeout=10)
+        script_path = os.path.dirname(os.path.abspath(__file__))
+        config_path = os.path.join(script_path, '../data/config.json')
+        config_file = open(config_path, 'r')
+        config = json.load(config_file)
+        return config
+    
+    except Exception as e:
+        print(f"Error opening config {config_path}: {e}")
+        raise
+
+
+
+def connect_to_db(config):
+    """Connects to MySQL database and returns connection object"""
+    print("Connecting to MySQL database...")
+    try:
+        conn = mysql.connector.connect(
+            host=config['db_host'],
+            port=config['db_port'],
+            user=config['db_user'],
+            password=config['db_pwd'],
+            database=config['db_name']
+            )
+
+        print("Successfully connected to db")
         return conn
 
-    except Exception as e:
-        print(f"Error opening SQL db connection: {e}")
-        raise
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("MySQL error: access denied, check credentials")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("MySQL error: database not found")
+        else:
+            print(f"MySQL error: {err}")
+        
+        # The only place we issue an 'exit' - nothing has yet happened
+        exit(1)
 
 
 
@@ -25,8 +58,11 @@ def read_student_csv_file():
         script_path = os.path.dirname(os.path.abspath(__file__))
         csv_path = os.path.join(script_path, '../data/students_transformed.csv')
 
+        # Define date parser to convert dob (yyyy-mm-dd) to date type
+        date_parser = lambda x: pd.to_datetime(x, format='%Y-%m-%d')
+
         # Read CSV file and return the resulting DataFrame
-        df = pd.read_csv(csv_path)
+        df = pd.read_csv(csv_path, parse_dates=['dob'], date_parser=date_parser)
         print(f"Reading {len(df)} rows from {csv_path}")
         return df
 
@@ -36,7 +72,7 @@ def read_student_csv_file():
 
 
 
-def cleardown_sql_table(cursor: sqlite3.Cursor):
+def cleardown_sql_table(cursor):
     """
     Delete all rows from the load_students table (as a load table
     its contents do not persist over time).
@@ -57,7 +93,7 @@ def cleardown_sql_table(cursor: sqlite3.Cursor):
 
 
 
-def write_to_db_row_by_row(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
+def write_to_db_row_by_row(csv_df: pd.DataFrame, cursor):
     """
     Iterates over given DataFrame, writes each row to SQL table load_students.
     This version executes an insert per row. Least efficient.
@@ -68,12 +104,13 @@ def write_to_db_row_by_row(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
             INSERT  INTO load_students
                         (student_guid, first_names, last_name, dob, phone, email, home_addr, home_postcode, home_country,
                         term_addr, term_postcode, term_country)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
         
         # Iterate through CSV file, executing insert command for each record
         # (note: commit logic is in 'main')
         for _, row in csv_df.iterrows():
+            print(f"data: {row}")
             insert_vals = (row['student_guid'], row['first_names'], row['last_name'], row['dob'], row['phone'], row['email'],
                             row['home_address'], row['home_postcode'], row['home_country'],
                             row['term_address'], row['term_postcode'], row['term_country'])
@@ -88,7 +125,7 @@ def write_to_db_row_by_row(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
 
 
 
-def write_to_db_execute_many(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
+def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
     """
     Iterates over given DataFrame, writes each row to SQL table load_students.
     This version executes all inserts in a single operation.
@@ -101,14 +138,14 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor: sqlite3.Cursor):
                     'term_address', 'term_postcode', 'term_country']
 
         # Build array of tuples as values for db mass-insert
-        data_for_insert = csv_df[csv_cols].to_records(index=False)
+        data_for_insert = csv_df[csv_cols].values.tolist()
 
         # Setup insert command (with value placeholders)
         insert_cmd = """
             INSERT  INTO load_students
                         (student_guid, first_names, last_name, dob, phone, email, home_addr, home_postcode, home_country,
                         term_addr, term_postcode, term_country)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
 
         # bulk insert CSV data to load_students
@@ -138,7 +175,8 @@ def main():
 
     try:
         # Connect to database
-        conn = get_sql_connection()
+        config = get_config()
+        conn = connect_to_db(config)
         cursor = conn.cursor()
 
         # Read data from CSV file
