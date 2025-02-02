@@ -4,7 +4,30 @@ import mysql.connector.cursor
 import pandas as pd
 import json
 import os
+import logging
 import subprocess
+
+
+def set_up_logging(env='dev'):
+    """
+    Set up logging and create dir/file as necessary.
+    Optional parameter 'dev'/'test'/'live'
+    """
+    try:
+        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'../logs/{env}')
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, 'application.log')
+
+        logging.basicConfig(
+            filename=log_file,
+            filemode="a",    # append mode
+            format="%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s", # log format
+            level=logging.INFO # logging threshold
+        )
+    except Exception as e:
+        print(f"Error setting up logging: {e}")
+        raise
+
 
 
 def get_config():
@@ -17,7 +40,7 @@ def get_config():
         return config
     
     except Exception as e:
-        print(f"Error opening config {config_path}: {e}")
+        logging.critical(f"Error opening config {config_path}: {e}")
         raise
 
 
@@ -27,17 +50,15 @@ def get_windows_host_ip():
     try:
         result = subprocess.run(['grep', 'nameserver', '/etc/resolv.conf'], capture_output=True, text=True)
         ip_address = result.stdout.split()[1]
-        print(f"Got windows host IP address: {ip_address}")
         return ip_address
     except Exception as e:
-        print(f"Error retrieving Windows host IP address: {e}")
+        logging.critical(f"Error retrieving Windows host IP address: {e}")
         raise
 
 
 
 def connect_to_db(config, ip_addr: str):
     """Connects to MySQL database and returns connection object"""
-    print("Connecting to MySQL database...")
     try:
         conn = mysql.connector.connect(
             host=ip_addr,
@@ -47,19 +68,19 @@ def connect_to_db(config, ip_addr: str):
             database=config['db_name']
             )
 
-        print("Successfully connected to db")
+        logging.info(f"Connected to db: {config['db_name']} host: {ip_addr} port: {config['db_port']}")
         return conn
 
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("MySQL error: access denied, check credentials")
+            logging.critical(f"MySQL access denied, check credentials (config). Host: {ip_addr} port: {config['db_port']}, db: {config['db_name']}")
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("MySQL error: database not found")
+            logging.critical(f"MySQL database not found. Host: {ip_addr}, port: {config['db_port']}, db: {config['db_name']}")
         else:
-            print(f"MySQL error: {err}")
+            logging.critical(f"MySQL error: {err}")
         
-        # The only place we issue an 'exit' - nothing has yet happened
-        exit(1)
+        # raise RuntimeError(f"Failed db connection. Host: {ip_addr}, port: {config['db_port']}, db: {config['db_name']}")
+        raise
 
 
 
@@ -78,11 +99,11 @@ def read_student_csv_file():
         # Read CSV file and return the resulting DataFrame
         df = pd.read_csv(csv_path)
         df['dob'] = pd.to_datetime(df['dob'], format='%Y-%m-%d')
-        print(f"Read {len(df)} rows from {csv_path}")
+        logging.info(f"Read {len(df)} rows from {csv_path}")
         return df
 
     except Exception as e:
-        print(f"Error loading CSV file into DataFrame: {e}")
+        logging.info(f"Error loading CSV file into DataFrame: {e}")
         raise
 
 
@@ -100,10 +121,10 @@ def cleardown_sql_table(cursor):
         # Delete all rows from the table (commit logic is in 'main')
         cursor.execute("DELETE FROM load_students")
 
-        print(f"Deleted {row_count} rows from load_students")
+        logging.info(f"Deleted {row_count} rows from load_students")
 
     except Exception as e:
-        print(f"Error clearing down SQL table load_students: {e}")
+        logging.critical(f"Error clearing down SQL table load_students: {e}")
         raise
 
 
@@ -125,17 +146,16 @@ def write_to_db_row_by_row(csv_df: pd.DataFrame, cursor):
         # Iterate through CSV file, executing insert command for each record
         # (note: commit logic is in 'main')
         for _, row in csv_df.iterrows():
-            print(f"data: {row}")
             insert_vals = (row['student_guid'], row['first_names'], row['last_name'], row['dob'], row['phone'], row['email'],
                             row['home_address'], row['home_postcode'], row['home_country'],
                             row['term_address'], row['term_postcode'], row['term_country'])
 
             cursor.execute(insert_cmd, insert_vals)
 
-        print(f"Wrote {len(csv_df)} rows to load_students")
+        logging.info(f"Wrote {len(csv_df)} rows to load_students")
 
     except Exception as e:
-        print(f"Error writing CSV data to load_students: {e}")
+        logging.critical(f"Error writing CSV data to load_students: {e}")
         raise
 
 
@@ -166,10 +186,10 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
         # bulk insert CSV data to load_students
         cursor.executemany(insert_cmd, data_for_insert)
 
-        print(f"Wrote {len(csv_df)} rows to load_students")
+        logging.info(f"Wrote {len(csv_df)} rows to load_students")
 
     except Exception as e:
-        print(f"Error writing CSV data to load_students: {e}")
+        logging.critical(f"Error writing CSV data to load_students: {e}")
         raise
 
 
@@ -182,7 +202,7 @@ def main():
         - cleardown the destination SQL table
         - copy CSV data to SQL table
     """
-    print("Started process to load student CSV to SQL.")
+    set_up_logging()
 
     # Declare here so guaranteed available in except/finally blocks
     conn = None
@@ -206,12 +226,13 @@ def main():
         write_to_db_execute_many(csv_df, cursor)
         conn.commit()
 
-        print("Student load complete")
+        logging.info("Student load complete")
     except Exception as e:
         # In case of error, rollback DB transaction and display error
+        logging.critical(f"DB transaction failed and rolling back: {e}")
         if conn:
             conn.rollback()
-        print(f"DB transaction failed and rolled back: {e}")
+        raise
     finally:
         if cursor:
             cursor.close()

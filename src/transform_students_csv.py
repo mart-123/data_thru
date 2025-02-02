@@ -1,26 +1,47 @@
 import pandas as pd
+import logging
 import os
 import re
 
 
+def set_up_logging(env='dev'):
+    """
+    Set up logging and create dir/file as necessary.
+    Optional parameter 'dev'/'test'/'live'
+    """
+    try:
+        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'../logs/{env}')
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, 'application.log')
+
+        logging.basicConfig(
+            filename=log_file,
+            filemode="a",    # append mode
+            format="%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s", # log format
+            level=logging.INFO # logging threshold
+        )
+
+    except Exception as e:
+        print(f"Error setting up logging: {e}")
+        raise
+
+
+
 def read_student_data(script_dir: str):
     """Load student data into dataframe and check for missing columns"""
-    print(f"Reading student extract file...")
-
     try:
-        csv_file_path = os.path.join(script_dir, '../data/student_extract.csv')
-        print(f"Reading student extract: {csv_file_path}")
+        csv_file_path = os.path.join(script_dir, '../data/students_extract.csv')
+        logging.info(f"Reading student extract: {csv_file_path}")
         df = pd.read_csv(csv_file_path)
         return df
+    
     except Exception as e:
-        print(f"Error reading student extract: {e}")
+        logging.critical(f"Error reading student extract: {e}")
         raise e
 
 
 def check_student_cols(df: pd.DataFrame):
     ### Checks the student csv file contains all, and only, expected columns.
-    print("Checking student columns")
-
     expected_columns = ['stu_id','phone','email','home_address','home_postcode','home_country','term_address','term_postcode','term_country','name','dob']
     missing_columns = []
 
@@ -36,26 +57,17 @@ def check_student_cols(df: pd.DataFrame):
 
 
 
-def preprocess_student_data(df: pd.DataFrame):
-    """
-    Fills missing (NA) values with empty string, strips spaces,
-    converts some cols to lower-case.
-    """
-    columns_to_fill = ['stu_id', 'phone', 'email', 'home_address', 'home_postcode', 'home_country', 'term_address', 'term_postcode', 'term_country', 'name', 'dob']
-    df[columns_to_fill] = df[columns_to_fill].fillna('')  # fill NA with empty string
-
-    df['email'] = df['email'].str.lower().str.strip()   # email to lowercase, remove spaces
-
-    return df
-
-
-
-def filter_student_data(df: pd.DataFrame, script_dir: str):
+def cleanse_student_data(df: pd.DataFrame, script_dir: str):
     """
     Checks for missing/invalid values, writing bad rows to 'students_bad' CSV file.
-    Run AFTER 'preprocess_student' as expects NA to have been converted to empty strings.
     """
-    print("Filtering student data...")
+    # Fill NA columns with empty string (simplifies subsequent validation logic)
+    columns_to_fill = ['stu_id', 'phone', 'email', 'home_address', 'home_postcode', 'home_country', 'term_address', 'term_postcode', 'term_country', 'name', 'dob']
+    df[columns_to_fill] = df[columns_to_fill].fillna('')
+
+    # Convert email addresses to lowercase
+    df['email'] = df['email'].str.lower().str.strip()   # email to lowercase, remove spaces
+
     home_addr_incomplete = (
         (df['home_address'] == '') |
         (df['home_postcode'] == '') |
@@ -77,15 +89,14 @@ def filter_student_data(df: pd.DataFrame, script_dir: str):
     bad_dates = ~(df['dob'].apply(lambda x: bool(date_pattern.match(x)) if x else False))
 
     # Combine error series and write bad rows to separate csv file
-    bad_indexes = home_addr_incomplete | term_addr_incomplete | other_cols_missing | bad_emails
+    bad_indexes = home_addr_incomplete | term_addr_incomplete | other_cols_missing | bad_emails | bad_dates
     bad_rows = df[bad_indexes]
-    new_file_path = os.path.join(script_dir, '../data/students_dq_filtered.csv')
+    new_file_path = os.path.join(script_dir, '../data/students_bad_data.csv')
     bad_rows.to_csv(new_file_path, index=False)
-    print(f"    Records failed validation: {len(bad_rows)}")
+    logging.info(f"CSV rows failed validation: {len(bad_rows)}")
 
     # return good rows
     good_rows = df[~bad_indexes]
-    print(f"    Records passed validation: {len(good_rows)}")
     return good_rows
 
 
@@ -98,10 +109,12 @@ def extract_names(row):
         return pd.Series({'first_names': parts[0], 'last_name': ''})
 
 def transform_student_data(df: pd.DataFrame):
-    ### Several transformations on remaining good rows:
-    ###     - phone : remove parenthesese
-    ###     - name : rename to 'full_name' and split into first name(s) and last name
-    ###     - stu_id : rename to student_guid
+    """
+        Several transformations on remaining good rows:
+          - phone : remove parenthesese
+          - name : rename to 'full_name' and split into first name(s) and last name
+          - stu_id : rename to student_guid
+    """
     df['phone'] = df['phone'].str.replace('(', '').str.replace(')', '')
     df.rename(columns={'stu_id': 'student_guid'}, inplace=True)
 
@@ -113,24 +126,26 @@ def transform_student_data(df: pd.DataFrame):
 
 
 
-def write_student_cleansed_data(cleansed_df: pd.DataFrame, script_dir: str):
+def write_transformed_student_data(transformed_df: pd.DataFrame, script_dir: str):
     try:
-        new_file_path = os.path.join(script_dir, '../data/students_transformed.csv')
-        cleansed_df.to_csv(new_file_path, index=False)
+        file_path = os.path.join(script_dir, '../data/students_transformed.csv')
+        transformed_df.to_csv(file_path, index=False)
+        logging.info(f"CSV rows transformed: {len(transformed_df)}")
+
     except Exception as e:
-        print(f"Error writing cleansed student data: {e}")
+        logging.critical(f"Error writing transformed student data: {e}")
         raise e
 
 
 
 def main():
+    set_up_logging()
     script_dir = os.path.dirname(os.path.abspath(__file__))
     df = read_student_data(script_dir)
     check_student_cols(df)
-    df = preprocess_student_data(df)
-    df = filter_student_data(df, script_dir)
+    df = cleanse_student_data(df, script_dir)
     df = transform_student_data(df)
-    write_student_cleansed_data(df, script_dir)
+    write_transformed_student_data(df, script_dir)
 
 
 
