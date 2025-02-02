@@ -4,6 +4,7 @@ import mysql.connector.cursor
 import pandas as pd
 import json
 import os
+import subprocess
 
 
 def get_config():
@@ -21,12 +22,25 @@ def get_config():
 
 
 
-def connect_to_db(config):
+def get_windows_host_ip():
+    """Retrieves Windows host IP address (WSL2 loopback address)."""
+    try:
+        result = subprocess.run(['grep', 'nameserver', '/etc/resolv.conf'], capture_output=True, text=True)
+        ip_address = result.stdout.split()[1]
+        print(f"Got windows host IP address: {ip_address}")
+        return ip_address
+    except Exception as e:
+        print(f"Error retrieving Windows host IP address: {e}")
+        raise
+
+
+
+def connect_to_db(config, ip_addr: str):
     """Connects to MySQL database and returns connection object"""
     print("Connecting to MySQL database...")
     try:
         conn = mysql.connector.connect(
-            host=config['db_host'],
+            host=ip_addr,
             port=config['db_port'],
             user=config['db_user'],
             password=config['db_pwd'],
@@ -62,8 +76,9 @@ def read_student_csv_file():
         date_parser = lambda x: pd.to_datetime(x, format='%Y-%m-%d')
 
         # Read CSV file and return the resulting DataFrame
-        df = pd.read_csv(csv_path, parse_dates=['dob'], date_parser=date_parser)
-        print(f"Reading {len(df)} rows from {csv_path}")
+        df = pd.read_csv(csv_path)
+        df['dob'] = pd.to_datetime(df['dob'], format='%Y-%m-%d')
+        print(f"Read {len(df)} rows from {csv_path}")
         return df
 
     except Exception as e:
@@ -127,7 +142,7 @@ def write_to_db_row_by_row(csv_df: pd.DataFrame, cursor):
 
 def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
     """
-    Iterates over given DataFrame, writes each row to SQL table load_students.
+    Writes CSV rows to SQL table load_students.
     This version executes all inserts in a single operation.
     Faster than row_by_row but holds a lot of RAM.
     """
@@ -176,7 +191,8 @@ def main():
     try:
         # Connect to database
         config = get_config()
-        conn = connect_to_db(config)
+        ip_addr = get_windows_host_ip()
+        conn = connect_to_db(config, ip_addr)
         cursor = conn.cursor()
 
         # Read data from CSV file
