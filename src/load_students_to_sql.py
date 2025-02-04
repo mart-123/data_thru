@@ -8,39 +8,49 @@ import logging
 import subprocess
 
 
-def set_up_logging(env='dev'):
+def get_config(env='dev'):
+    """Reads json config file into dictionary. Appends various working directories/file paths."""
+    try:
+        # Get DB config into a 'config' dictionary
+        script_path = os.path.dirname(os.path.abspath(__file__))
+        config_path = os.path.join(script_path, '../data/config.json')
+        with open(config_path, 'r') as config_file: 
+            config = json.load(config_file)
+
+        # Append various directory/file paths to 'config' dictionary
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        log_dir = os.path.join(script_dir, f'../logs/{env}')
+        data_dir = os.path.join(script_dir, f'../data')
+
+        config['env'] = env
+        config['log_dir'] = log_dir
+        config['log_file_path'] = os.path.join(log_dir, 'application.log')
+        config['input_path'] = os.path.join(data_dir, 'students_transformed.csv')
+
+        return config
+
+    except Exception as e:
+        logging.critical(f"Error opening config {config_path}: {e}")
+        raise
+
+
+
+def set_up_logging(config):
     """
     Set up logging and create dir/file as necessary.
     Optional parameter 'dev'/'test'/'live'
     """
     try:
-        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'../logs/{env}')
-        os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, 'application.log')
+        os.makedirs(config['log_dir'], exist_ok=True)
 
         logging.basicConfig(
-            filename=log_file,
+            filename=config['log_file_path'],
             filemode="a",    # append mode
-            format="%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s", # log format
+            format="%(asctime)s - %(levelname)s - %(filename)s - %(message)s",
             level=logging.INFO # logging threshold
         )
     except Exception as e:
         print(f"Error setting up logging: {e}")
-        raise
-
-
-
-def get_config():
-    """Reads json config file, returns contents as a dictionary"""
-    try:
-        script_path = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(script_path, '../data/config.json')
-        config_file = open(config_path, 'r')
-        config = json.load(config_file)
-        return config
-    
-    except Exception as e:
-        logging.critical(f"Error opening config {config_path}: {e}")
         raise
 
 
@@ -84,23 +94,18 @@ def connect_to_db(config, ip_addr: str):
 
 
 
-def read_student_csv_file():
-    """
-    Reads CSV file of student records, returns the resulting DataFrame.
-    """
+def reads_students_in_chunks(config, chunk_size=200):
+    """Generator function, reads students CSV, returns in chunks."""
     try:
-        # Build path string for csv file
-        script_path = os.path.dirname(os.path.abspath(__file__))
-        csv_path = os.path.join(script_path, '../data/students_transformed.csv')
+        csv_path = config['input_path']
+        total_read = 0
 
-        # Define date parser to convert dob (yyyy-mm-dd) to date type
-        date_parser = lambda x: pd.to_datetime(x, format='%Y-%m-%d')
+        for chunk in pd.read_csv(csv_path, chunksize=chunk_size):
+            chunk['dob'] = pd.to_datetime(chunk['dob'], format='%Y-%m-%d')    # convert DoB to date type (db col is date type)
+            total_read += len(chunk)
+            yield chunk
 
-        # Read CSV file and return the resulting DataFrame
-        df = pd.read_csv(csv_path)
-        df['dob'] = pd.to_datetime(df['dob'], format='%Y-%m-%d')
-        logging.info(f"Read {len(df)} rows from {csv_path}")
-        return df
+        logging.info(f"Read {total_read} rows from {csv_path}")
 
     except Exception as e:
         logging.info(f"Error loading CSV file into DataFrame: {e}")
@@ -129,43 +134,8 @@ def cleardown_sql_table(cursor):
 
 
 
-def write_to_db_row_by_row(csv_df: pd.DataFrame, cursor):
-    """
-    Iterates over given DataFrame, writes each row to SQL table load_students.
-    This version executes an insert per row. Least efficient.
-    """
-    try:
-        # Setup insert command (with value placeholders)
-        insert_cmd = """
-            INSERT  INTO load_students
-                        (student_guid, first_names, last_name, dob, phone, email, home_addr, home_postcode, home_country,
-                        term_addr, term_postcode, term_country)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """
-        
-        # Iterate through CSV file, executing insert command for each record
-        # (note: commit logic is in 'main')
-        for _, row in csv_df.iterrows():
-            insert_vals = (row['student_guid'], row['first_names'], row['last_name'], row['dob'], row['phone'], row['email'],
-                            row['home_address'], row['home_postcode'], row['home_country'],
-                            row['term_address'], row['term_postcode'], row['term_country'])
-
-            cursor.execute(insert_cmd, insert_vals)
-
-        logging.info(f"Wrote {len(csv_df)} rows to load_students")
-
-    except Exception as e:
-        logging.critical(f"Error writing CSV data to load_students: {e}")
-        raise
-
-
-
 def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
-    """
-    Writes CSV rows to SQL table load_students.
-    This version executes all inserts in a single operation.
-    Faster than row_by_row but holds a lot of RAM.
-    """
+    """Writes CSV rows to SQL table load_students."""
     try:
         # Declare which csv columns to use as insert values
         csv_cols = ['student_guid', 'first_names', 'last_name', 'dob', 'phone', 'email',
@@ -186,8 +156,6 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
         # bulk insert CSV data to load_students
         cursor.executemany(insert_cmd, data_for_insert)
 
-        logging.info(f"Wrote {len(csv_df)} rows to load_students")
-
     except Exception as e:
         logging.critical(f"Error writing CSV data to load_students: {e}")
         raise
@@ -195,14 +163,9 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
 
 
 def main():
-    """
-    Main function to load CSV of cleansed/transformed student data into SQL db. Steps are:
-        - opens CSV file
-        - sets up SQL cursor
-        - cleardown the destination SQL table
-        - copy CSV data to SQL table
-    """
-    set_up_logging()
+    """Main logic, loads cleansed student data into SQL db."""
+    config = get_config()
+    set_up_logging(config)
 
     # Declare here so guaranteed available in except/finally blocks
     conn = None
@@ -210,34 +173,31 @@ def main():
 
     try:
         # Connect to database
-        config = get_config()
         ip_addr = get_windows_host_ip()
         conn = connect_to_db(config, ip_addr)
         cursor = conn.cursor()
 
-        # Read data from CSV file
-        csv_df = read_student_csv_file()
-
         # Delete existing data from load_students table
         cleardown_sql_table(cursor)
 
-        # Write CSV data to load_students table
-#        write_to_db_row_by_row(csv_df, cursor)
-        write_to_db_execute_many(csv_df, cursor)
-        conn.commit()
+        # Read data from CSV file
+        total_written = 0
+        for chunk in(reads_students_in_chunks(config)):
+            write_to_db_execute_many(chunk, cursor)
+            conn.commit()
+            total_written += len(chunk)
 
-        logging.info("Student load complete")
+        logging.info(f"Wrote {total_written} rows to SQL table")
+
     except Exception as e:
         # In case of error, rollback DB transaction and display error
         logging.critical(f"DB transaction failed and rolling back: {e}")
-        if conn:
-            conn.rollback()
+        if conn:    conn.rollback()
         raise
+
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        if cursor:  cursor.close()
+        if conn:    conn.close()
 
 if __name__ == '__main__':
     main()

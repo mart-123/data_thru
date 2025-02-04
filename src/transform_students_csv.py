@@ -4,20 +4,35 @@ import os
 import re
 
 
-def set_up_logging(env='dev'):
+def get_config(env='dev'):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    log_dir = os.path.join(script_dir, f'../logs/{env}')
+    data_dir = os.path.join(script_dir, f'../data')
+
+    config = {
+        'env' : env,
+        'log_dir' : log_dir,
+        'log_file_path' : os.path.join(log_dir, 'application.log'),
+        'input_path' : os.path.join(data_dir, 'students_extract.csv'),
+        'transformed_path' : os.path.join(data_dir, 'students_transformed.csv'),
+        'bad_data_path' : os.path.join(data_dir, 'students_bad_data.csv')
+    }
+
+    return config
+
+
+
+def set_up_logging(config):
     """
     Set up logging and create dir/file as necessary.
-    Optional parameter 'dev'/'test'/'live'
     """
     try:
-        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'../logs/{env}')
-        os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, 'application.log')
+        os.makedirs(config['log_dir'], exist_ok=True)
 
         logging.basicConfig(
-            filename=log_file,
+            filename=config['log_file_path'],
             filemode="a",    # append mode
-            format="%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s", # log format
+            format="%(asctime)s - %(levelname)s - %(filename)s - %(message)s", # log format
             level=logging.INFO # logging threshold
         )
 
@@ -27,17 +42,38 @@ def set_up_logging(env='dev'):
 
 
 
-def read_student_data(script_dir: str):
-    """Load student data into dataframe and check for missing columns"""
+def init_output_files(config):
+    """Remove output files if they exist. Enables header-row logic during file writes."""
     try:
-        csv_file_path = os.path.join(script_dir, '../data/students_extract.csv')
-        logging.info(f"Reading student extract: {csv_file_path}")
-        df = pd.read_csv(csv_file_path)
-        return df
+        if os.path.exists(config['transformed_path']):
+            os.remove(config['transformed_path'])
+        if os.path.exists(config['bad_data_path']):
+            os.remove(config['bad_data_path'])
     
+    except Exception as e:
+        logging.critical(f"Error initialising output files: {e}")
+        raise e
+
+
+
+
+def read_student_data_chunks(config, chunk_size=500):
+    """
+    Generator function - load student data and returns as chunks.
+    """
+    try:
+        logging.info(f"Reading student extract: {config['input_path']}")
+
+        for chunk in pd.read_csv(config['input_path'], chunksize=chunk_size):
+            yield chunk
+
+        # df = pd.read_csv(config['input_path']) # for non-chunk approach, replace above for with this
+        # return df
+
     except Exception as e:
         logging.critical(f"Error reading student extract: {e}")
         raise e
+
 
 
 def check_student_cols(df: pd.DataFrame):
@@ -57,7 +93,7 @@ def check_student_cols(df: pd.DataFrame):
 
 
 
-def cleanse_student_data(df: pd.DataFrame, script_dir: str):
+def cleanse_student_data(df: pd.DataFrame, config):
     """
     Checks for missing/invalid values, writing bad rows to 'students_bad' CSV file.
     """
@@ -69,15 +105,12 @@ def cleanse_student_data(df: pd.DataFrame, script_dir: str):
     df['email'] = df['email'].str.lower().str.strip()   # email to lowercase, remove spaces
 
     home_addr_incomplete = (
-        (df['home_address'] == '') |
-        (df['home_postcode'] == '') |
-        (df['home_country'] == '')
+        (df['home_address'] == '') | (df['home_postcode'] == '') | (df['home_country'] == '')
     )
 
     term_addr_incomplete = (
-        (df['term_address'] == '') |
-        (df['term_postcode'] == '') |
-        (df['term_country'] == ''))
+        (df['term_address'] == '') | (df['term_postcode'] == '') | (df['term_country'] == '')
+    )
 
     other_cols_missing = (df['stu_id'] == '') | (df['phone'] == '') | (df['email'] == '') | (df['name'] == '') | (df['dob'] == '')
 
@@ -91,9 +124,8 @@ def cleanse_student_data(df: pd.DataFrame, script_dir: str):
     # Combine error series and write bad rows to separate csv file
     bad_indexes = home_addr_incomplete | term_addr_incomplete | other_cols_missing | bad_emails | bad_dates
     bad_rows = df[bad_indexes]
-    new_file_path = os.path.join(script_dir, '../data/students_bad_data.csv')
-    bad_rows.to_csv(new_file_path, index=False)
-    logging.info(f"CSV rows failed validation: {len(bad_rows)}")
+    write_header = not(os.path.exists(config['bad_data_path']))
+    bad_rows.to_csv(config['bad_data_path'], mode='a', header=write_header, index=False)
 
     # return good rows
     good_rows = df[~bad_indexes]
@@ -102,15 +134,16 @@ def cleanse_student_data(df: pd.DataFrame, script_dir: str):
 
 
 def extract_names(row):
+    """ Helper function to split name into first name(s) and last name"""
     parts = row['name'].split(' ')
     if len(parts) > 1:
         return pd.Series({'first_names': ' '.join(parts[:-1]), 'last_name': parts[-1]})
     else:
         return pd.Series({'first_names': parts[0], 'last_name': ''})
 
+
 def transform_student_data(df: pd.DataFrame):
-    """
-        Several transformations on remaining good rows:
+    """Transform remaining (good) rows:
           - phone : remove parenthesese
           - name : rename to 'full_name' and split into first name(s) and last name
           - stu_id : rename to student_guid
@@ -126,11 +159,10 @@ def transform_student_data(df: pd.DataFrame):
 
 
 
-def write_transformed_student_data(transformed_df: pd.DataFrame, script_dir: str):
+def write_transformed_student_data(transformed_df: pd.DataFrame, config):
     try:
-        file_path = os.path.join(script_dir, '../data/students_transformed.csv')
-        transformed_df.to_csv(file_path, index=False)
-        logging.info(f"CSV rows transformed: {len(transformed_df)}")
+        write_header = not(os.path.exists(config['transformed_path']))
+        transformed_df.to_csv(config['transformed_path'], mode='a', header=write_header, index=False)
 
     except Exception as e:
         logging.critical(f"Error writing transformed student data: {e}")
@@ -139,13 +171,24 @@ def write_transformed_student_data(transformed_df: pd.DataFrame, script_dir: str
 
 
 def main():
-    set_up_logging()
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    df = read_student_data(script_dir)
-    check_student_cols(df)
-    df = cleanse_student_data(df, script_dir)
-    df = transform_student_data(df)
-    write_transformed_student_data(df, script_dir)
+    config = get_config()
+    set_up_logging(config)
+    init_output_files(config)
+    count_read = 0
+    count_transformed = 0
+
+    for chunk in read_student_data_chunks(config, 200):
+        count_read += len(chunk)
+        chunk_copy = chunk.copy()
+        check_student_cols(chunk_copy)
+        chunk_copy = cleanse_student_data(chunk_copy, config)
+        chunk_copy = transform_student_data(chunk_copy)
+        count_transformed += len(chunk_copy)
+        write_transformed_student_data(chunk_copy, config)
+
+    logging.info(f"Students read: {count_read}")
+    logging.info(f"Students failed validation: {count_read - count_transformed}")
+    logging.info(f"Students transformed: {count_transformed}")
 
 
 
