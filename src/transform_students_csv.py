@@ -2,6 +2,8 @@ import pandas as pd
 import logging
 import os
 import re
+from multiprocessing import Pool
+import time
 
 
 def get_config(env='dev'):
@@ -19,7 +21,6 @@ def get_config(env='dev'):
     }
 
     return config
-
 
 
 def set_up_logging(config):
@@ -41,7 +42,6 @@ def set_up_logging(config):
         raise
 
 
-
 def init_output_files(config):
     """Remove output files if they exist. Enables header-row logic during file writes."""
     try:
@@ -55,11 +55,9 @@ def init_output_files(config):
         raise e
 
 
-
-
-def read_student_data_chunks(config, chunk_size=500):
+def read_data_chunks(config, chunk_size=500):
     """
-    Generator function - load student data and returns as chunks.
+    Generator function - load student CSV and returns as chunks.
     """
     try:
         logging.info(f"Reading student extract: {config['input_path']}")
@@ -67,17 +65,15 @@ def read_student_data_chunks(config, chunk_size=500):
         for chunk in pd.read_csv(config['input_path'], chunksize=chunk_size):
             yield chunk
 
-        # df = pd.read_csv(config['input_path']) # for non-chunk approach, replace above for with this
-        # return df
-
     except Exception as e:
         logging.critical(f"Error reading student extract: {e}")
         raise e
 
 
-
-def check_student_cols(df: pd.DataFrame):
-    ### Checks the student csv file contains all, and only, expected columns.
+def check_columns(df: pd.DataFrame):
+    """
+    Checks the student csv file contains all, and only, expected columns.
+    """
     expected_columns = ['stu_id','phone','email','home_address','home_postcode','home_country','term_address','term_postcode','term_country','name','dob']
     missing_columns = []
 
@@ -92,10 +88,9 @@ def check_student_cols(df: pd.DataFrame):
         raise ValueError(f"Student CSV has {len(df.columns)} but should have {len(expected_columns)}")
 
 
-
-def cleanse_student_data(df: pd.DataFrame, config):
+def cleanse_data(df: pd.DataFrame, config):
     """
-    Checks for missing/invalid values, writing bad rows to 'students_bad' CSV file.
+    Checks for missing/invalid values, writing bad rows to 'bad_data' CSV file.
     """
     # Fill NA columns with empty string (simplifies subsequent validation logic)
     columns_to_fill = ['stu_id', 'phone', 'email', 'home_address', 'home_postcode', 'home_country', 'term_address', 'term_postcode', 'term_country', 'name', 'dob']
@@ -114,7 +109,7 @@ def cleanse_student_data(df: pd.DataFrame, config):
 
     other_cols_missing = (df['stu_id'] == '') | (df['phone'] == '') | (df['email'] == '') | (df['name'] == '') | (df['dob'] == '')
 
-    # Check for malformed emails
+    # Validate email format (contains '@')
     bad_emails = ~(df['email'].str.contains('@', na=False))
 
     # Check DoB for yyyy-mm-dd
@@ -132,7 +127,6 @@ def cleanse_student_data(df: pd.DataFrame, config):
     return good_rows
 
 
-
 def extract_names(row):
     """ Helper function to split name into first name(s) and last name"""
     parts = row['name'].split(' ')
@@ -142,12 +136,16 @@ def extract_names(row):
         return pd.Series({'first_names': parts[0], 'last_name': ''})
 
 
-def transform_student_data(df: pd.DataFrame):
-    """Transform remaining (good) rows:
-          - phone : remove parenthesese
-          - name : rename to 'full_name' and split into first name(s) and last name
-          - stu_id : rename to student_guid
+def transform_batch(batch: pd.DataFrame):
     """
+    Transforms rows that have passed validation:
+        - phone : remove parenthesese
+        - name : rename to 'full_name' and split into first name(s) and last name
+        - stu_id : rename to student_guid    
+
+    Call on entire file, each chunk, or during parallelisation.
+    """
+    df = batch.copy()
     df['phone'] = df['phone'].str.replace('(', '').str.replace(')', '')
     df.rename(columns={'stu_id': 'student_guid'}, inplace=True)
 
@@ -158,8 +156,23 @@ def transform_student_data(df: pd.DataFrame):
     return df
 
 
+def transform_parallel(df, batch_size=50):
+    """
+    Breaks an input DataFrame into batches and invokes parallelised
+    transformation on them all.
+    """
+    batches = []
+    for i in range(0, len(df), batch_size):
+        batch = df.iloc[i:i+batch_size]
+        batches.append(batch)
 
-def write_transformed_student_data(transformed_df: pd.DataFrame, config):
+    with Pool() as pool:
+        transformed_batches = pool.map(transform_batch, batches)
+    
+    return pd.concat(transformed_batches)
+
+
+def write_transformed_data(transformed_df: pd.DataFrame, config):
     try:
         write_header = not(os.path.exists(config['transformed_path']))
         transformed_df.to_csv(config['transformed_path'], mode='a', header=write_header, index=False)
@@ -169,27 +182,37 @@ def write_transformed_student_data(transformed_df: pd.DataFrame, config):
         raise e
 
 
-
 def main():
+    start_time = time.time()
+
+    # General set-up
     config = get_config()
     set_up_logging(config)
     init_output_files(config)
     count_read = 0
     count_transformed = 0
 
-    for chunk in read_student_data_chunks(config, 200):
+    # Streams/chunks input file and for each chunk:
+    #   - check for correct columns
+    #   - cleanse data (exceptions go to 'bad_data' file)
+    #   - transform and write good data ('transformed' file)
+    for chunk in read_data_chunks(config, 200):
         count_read += len(chunk)
         chunk_copy = chunk.copy()
-        check_student_cols(chunk_copy)
-        chunk_copy = cleanse_student_data(chunk_copy, config)
-        chunk_copy = transform_student_data(chunk_copy)
+        check_columns(chunk_copy)
+        chunk_copy = cleanse_data(chunk_copy, config)
+        chunk_copy = transform_parallel(chunk_copy)
         count_transformed += len(chunk_copy)
-        write_transformed_student_data(chunk_copy, config)
+        write_transformed_data(chunk_copy, config)
 
+    #  Final tidy up
     logging.info(f"Students read: {count_read}")
     logging.info(f"Students failed validation: {count_read - count_transformed}")
     logging.info(f"Students transformed: {count_transformed}")
 
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    logging.info(f"Student transform complete. Elapsed time: {elapsed_time:.4f} seconds")
 
 
 if __name__ == '__main__':
