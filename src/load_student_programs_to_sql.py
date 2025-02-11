@@ -13,8 +13,8 @@ def init():
     config = get_config()
     set_up_logging(config)
 
-    # Process-specific config (typically filenames)
-    config['input_path'] = os.path.join(config['data_dir'], 'students_transformed.csv')
+    # Process-specific config (filenames)
+    config['input_path'] = os.path.join(config['data_dir'], 'student_programs_transformed.csv')
 
     return config
 
@@ -56,7 +56,7 @@ def connect_to_db(config, ip_addr: str):
         raise
 
 
-def read_students_in_chunks(config, chunk_size=200):
+def read_csv_in_chunks(config, chunk_size=200):
     """Generator function, reads students CSV, returns in chunks."""
     try:
         csv_path = config['input_path']
@@ -80,44 +80,46 @@ def cleardown_sql_table(cursor):
     its contents do not persist over time).
     """
     try:
+        table_name = "load_student_programs"
+
         # Get row count to be displayed after delete is finished
-        cursor.execute("SELECT COUNT(*) FROM load_students")
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
         row_count = cursor.fetchone()[0]
         
         # Delete all rows from the table (commit logic is in 'main')
-        cursor.execute("DELETE FROM load_students")
+        cursor.execute(f"DELETE FROM {table_name}")
 
-        logging.info(f"Deleted {row_count} rows from load_students")
+        logging.info(f"Deleted {row_count} rows from {table_name}")
 
     except Exception as e:
-        logging.critical(f"Error clearing down SQL table load_students: {e}")
+        logging.critical(f"Error clearing down SQL table {table_name}: {e}")
         raise
 
 
 def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
     """Writes CSV rows to SQL table load_students."""
     try:
+        table_name = 'load_student_programs'
+
         # Declare which csv columns to use as insert values
-        csv_cols = ['student_guid', 'first_names', 'last_name', 'dob', 'phone', 'email',
-                    'home_address', 'home_postcode', 'home_country',
-                    'term_address', 'term_postcode', 'term_country']
+        csv_cols = ['student_guid', 'email', 'dob',
+                    'program_guid', 'program_code', 'program_name']
 
         # Build array of tuples as values for db mass-insert
         data_for_insert = csv_df[csv_cols].values.tolist()
 
         # Setup insert command (with value placeholders)
-        insert_cmd = """
-            INSERT  INTO load_students
-                        (student_guid, first_names, last_name, dob, phone, email, home_addr, home_postcode, home_country,
-                        term_addr, term_postcode, term_country)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        insert_cmd = f"""
+            INSERT  INTO {table_name}
+                        (student_guid, email, dob, program_guid, program_code, program_name)
+                    VALUES (%s, %s, %s, %s, %s, %s)
             """
 
         # bulk insert CSV data to load_students
         cursor.executemany(insert_cmd, data_for_insert)
 
     except Exception as e:
-        logging.critical(f"Error writing CSV data to load_students: {e}")
+        logging.critical(f"Error writing CSV data to {table_name}: {e}")
         raise
 
 
@@ -140,7 +142,7 @@ def main():
 
         # Read data from CSV file
         total_written = 0
-        for chunk in(read_students_in_chunks(config)):
+        for chunk in(read_csv_in_chunks(config)):
             write_to_db_execute_many(chunk, cursor)
             conn.commit()
             total_written += len(chunk)

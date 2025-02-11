@@ -4,26 +4,16 @@
 This module creates college database and tables.
 """
 import mysql.connector
-from mysql.connector import errorcode
-import os
-import subprocess
-import json
-
 import mysql.connector.cursor
+from mysql.connector import errorcode
+import subprocess
+from etl_utils import get_config, set_up_logging
 
+def init():
+    config = get_config()
+    set_up_logging(config)
 
-def get_config():
-    """Reads json config file, returns contents as a dictionary"""
-    try:
-        script_path = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(script_path, '../data/config.json')
-        config_file = open(config_path, 'r')
-        config = json.load(config_file)
-        return config
-    except Exception as e:
-        print(f"Error opening config {config_path}: {e}")
-        raise
-
+    return config
 
 
 def get_windows_host_ip():
@@ -68,8 +58,6 @@ def connect_to_db(config, ip_addr):
 
 
 def create_load_students_table(cursor: mysql.connector.cursor.MySQLCursor):
-    """ Creates student load table if not found"""
-    print("Creating load_students table...")
     table_name = 'load_students'
 
     try:
@@ -100,10 +88,43 @@ def create_load_students_table(cursor: mysql.connector.cursor.MySQLCursor):
                     );
                 """)
             
-            print(f"Successfully created table: {table_name}")
+            print(f"Created table: {table_name}")
 
     except mysql.connector.Error as err:
-        print(f"Error during creation of load_students: {err}")
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+
+def create_load_student_programs_table(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_student_programs'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    student_guid CHAR(36) COMMENT 'Vendor-provided unique id for student',
+                    email VARCHAR(250) COMMENT 'Email address of student, provided here to aid visual data inspection',
+                    dob DATE COMMENT 'Student date of birth, provided here to aid visual data inspection',
+                    program_guid CHAR(36) COMMENT 'Vendor-provided unique id for program of study',
+                    program_code VARCHAR(10) COMMENT 'Human-readable, unique code for the program of study',
+                    program_name VARCHAR(100) COMMENT 'The program name that will appear on award certificate'
+                    )
+                    COMMENT='Load table of program/student data. Contains all program data but also student/program links. Still denormalised at the point of load, per vendor CSV file.';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
         raise
 
 
@@ -116,14 +137,12 @@ def main():
     conn = None
 
     try:
-        print("Creating tables")
-        config = get_config()
+        config = init()
         ip_addr = get_windows_host_ip()
         conn = connect_to_db(config, ip_addr)
-        print("Instantiating cursor...")
         cursor = conn.cursor()
-        print("Successfully instantiated cursor")
         create_load_students_table(cursor)
+        create_load_student_programs_table(cursor)
         conn.commit()
         print("Table creation complete")
 

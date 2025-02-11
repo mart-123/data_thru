@@ -13,9 +13,10 @@ def init():
     set_up_logging(config)
 
     # Process-specific config (typically filenames)
-    config['input_path'] = os.path.join(config['data_dir'], 'students_extract.csv')
-    config['transformed_path'] = os.path.join(config['data_dir'], 'students_transformed.csv')
-    config['bad_data_path'] = os.path.join(config['data_dir'], 'students_bad_data.csv')
+    config['input_path'] = os.path.join(config['data_dir'], 'student_programs_extract.csv')
+    config['transformed_path'] = os.path.join(config['data_dir'], 'student_programs_transformed.csv')
+    config['bad_data_path'] = os.path.join(config['data_dir'], 'student_programs_bad_data.csv')
+
     return config
 
 
@@ -40,21 +41,21 @@ def read_data_chunks(config, chunk_size=500):
     Generator function - load student CSV and returns as chunks.
     """
     try:
-        logging.info(f"Reading student extract: {config['input_path']}")
+        logging.info(f"Reading extract CSV: {config['input_path']}")
 
         for chunk in pd.read_csv(config['input_path'], chunksize=chunk_size):
             yield chunk
 
     except Exception as e:
-        logging.critical(f"Error reading student extract: {e}")
+        logging.critical(f"Error reading extract CSV: {e}")
         raise e
 
 
 def check_columns(df: pd.DataFrame):
     """
-    Checks the student csv file contains all, and only, expected columns.
+    Checks the student programs csv file contains all, and only, expected columns.
     """
-    expected_columns = ['stu_id','phone','email','home_address','home_postcode','home_country','term_address','term_postcode','term_country','name','dob']
+    expected_columns = ['stu_id','email','dob','program_id','program_code','program_name']
     missing_columns = []
 
     for col in expected_columns:
@@ -65,7 +66,7 @@ def check_columns(df: pd.DataFrame):
         raise ValueError(f"Columns missing from csv file: {missing_columns}")
     
     if len(expected_columns) != len(df.columns):
-        raise ValueError(f"Student CSV has {len(df.columns)} but should have {len(expected_columns)}")
+        raise ValueError(f"CSV has {len(df.columns)} columns but should have {len(expected_columns)}")
 
 
 def cleanse_data(df: pd.DataFrame, config):
@@ -73,21 +74,15 @@ def cleanse_data(df: pd.DataFrame, config):
     Checks for missing/invalid values, writing bad rows to 'bad_data' CSV file.
     """
     # Fill NA columns with empty string (simplifies subsequent validation logic)
-    columns_to_fill = ['stu_id', 'phone', 'email', 'home_address', 'home_postcode', 'home_country', 'term_address', 'term_postcode', 'term_country', 'name', 'dob']
+    columns_to_fill = ['stu_id', 'email', 'dob', 'program_id', 'program_code', 'program_name']
     df[columns_to_fill] = df[columns_to_fill].fillna('')
 
     # Convert email addresses to lowercase
     df['email'] = df['email'].str.lower().str.strip()   # email to lowercase, remove spaces
 
-    home_addr_incomplete = (
-        (df['home_address'] == '') | (df['home_postcode'] == '') | (df['home_country'] == '')
-    )
-
-    term_addr_incomplete = (
-        (df['term_address'] == '') | (df['term_postcode'] == '') | (df['term_country'] == '')
-    )
-
-    other_cols_missing = (df['stu_id'] == '') | (df['phone'] == '') | (df['email'] == '') | (df['name'] == '') | (df['dob'] == '')
+    # Check for mandatory columns
+    other_cols_missing = ((df['stu_id'] == '') | (df['email'] == '') | (df['dob'] == '') |
+                        (df['program_id'] == '') | (df['program_code'] == '') | (df['program_name'] == ''))
 
     # Validate email format (contains '@')
     bad_emails = ~(df['email'].str.contains('@', na=False))
@@ -97,7 +92,7 @@ def cleanse_data(df: pd.DataFrame, config):
     bad_dates = ~(df['dob'].apply(lambda x: bool(date_pattern.match(x)) if x else False))
 
     # Combine error series and write bad rows to separate csv file
-    bad_indexes = home_addr_incomplete | term_addr_incomplete | other_cols_missing | bad_emails | bad_dates
+    bad_indexes = other_cols_missing | bad_emails | bad_dates
     bad_rows = df[bad_indexes]
     write_header = not(os.path.exists(config['bad_data_path']))
     bad_rows.to_csv(config['bad_data_path'], mode='a', header=write_header, index=False)
@@ -119,20 +114,14 @@ def extract_names(row):
 def transform_batch(batch: pd.DataFrame):
     """
     Transforms rows that have passed validation:
-        - phone : remove parenthesese
-        - name : rename to 'full_name' and split into first name(s) and last name
         - stu_id : rename to student_guid    
 
     Call on entire file, each chunk, or during parallelisation.
     """
     df = batch.copy()
-    df['phone'] = df['phone'].str.replace('(', '').str.replace(')', '')
     df.rename(columns={'stu_id': 'student_guid'}, inplace=True)
+    df.rename(columns={'program_id': 'program_guid'}, inplace=True)
 
-    # split name into first name(s) and last name cols
-    names = df.apply(extract_names, axis=1)
-    df = pd.concat([df, names], axis=1)
-    df.drop(columns=['name'], inplace=True)
     return df
 
 
@@ -154,7 +143,7 @@ def transform_parallel(df, batch_size=50):
 
 def write_transformed_data(transformed_df: pd.DataFrame, config):
     """Writes dataframe to CSV file, in append mode due to streaming/chunk processing.
-    Header row generated for first batch (i.e. at beginning of file)."""
+    Header row generated for first batch (i.e. at beginning of file)."""    
     try:
         write_header = not(os.path.exists(config['transformed_path']))
         transformed_df.to_csv(config['transformed_path'], mode='a', header=write_header, index=False)
@@ -187,13 +176,13 @@ def main():
         write_transformed_data(chunk_copy, config)
 
     #  Final tidy up
-    logging.info(f"Rows read: {count_read}")
-    logging.info(f"Rows failed validation: {count_read - count_transformed}")
-    logging.info(f"Rows transformed: {count_transformed}")
+    logging.info(f"CSV rows read: {count_read}")
+    logging.info(f"CSV rows failed validation: {count_read - count_transformed}")
+    logging.info(f"CSV rows transformed: {count_transformed}")
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    logging.info(f"Student transform complete. Elapsed time: {elapsed_time:.4f} seconds")
+    logging.info(f"Student program transform complete. Elapsed time: {elapsed_time:.4f} seconds")
 
 
 if __name__ == '__main__':
