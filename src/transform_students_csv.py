@@ -4,7 +4,7 @@ import os
 import re
 from multiprocessing import Pool
 import time
-from etl_utils import get_config, set_up_logging
+from etl_utils import get_config, set_up_logging, is_valid_date
 
 
 def init():
@@ -13,9 +13,9 @@ def init():
     set_up_logging(config)
 
     # Process-specific config (typically filenames)
-    config['input_path'] = os.path.join(config['data_dir'], 'students_extract.csv')
-    config['transformed_path'] = os.path.join(config['data_dir'], 'students_transformed.csv')
-    config['bad_data_path'] = os.path.join(config['data_dir'], 'students_bad_data.csv')
+    config['input_path'] = os.path.join(config['extracts_dir'], 'students_extract.csv')
+    config['transformed_path'] = os.path.join(config['transformed_dir'], 'students_transformed.csv')
+    config['bad_data_path'] = os.path.join(config['bad_data_dir'], 'students_bad_data.csv')
     return config
 
 
@@ -31,7 +31,7 @@ def init_output_files(config):
             os.remove(config['bad_data_path'])
     
     except Exception as e:
-        logging.critical(f"Error initialising output files: {e}")
+        logging.critical(f"{type(e).__name__} whilst initialising output files: {e}")
         raise e
 
 
@@ -46,7 +46,7 @@ def read_data_chunks(config, chunk_size=500):
             yield chunk
 
     except Exception as e:
-        logging.critical(f"Error reading student extract: {e}")
+        logging.critical(f"{type(e).__name__} whilar reading student extract: {e}")
         raise e
 
 
@@ -76,8 +76,8 @@ def cleanse_data(df: pd.DataFrame, config):
     columns_to_fill = ['stu_id', 'phone', 'email', 'home_address', 'home_postcode', 'home_country', 'term_address', 'term_postcode', 'term_country', 'name', 'dob']
     df[columns_to_fill] = df[columns_to_fill].fillna('')
 
-    # Convert email addresses to lowercase
-    df['email'] = df['email'].str.lower().str.strip()   # email to lowercase, remove spaces
+    # Convert email lowercase
+    df['email'] = df['email'].str.lower().str.strip()
 
     home_addr_incomplete = (
         (df['home_address'] == '') | (df['home_postcode'] == '') | (df['home_country'] == '')
@@ -92,12 +92,13 @@ def cleanse_data(df: pd.DataFrame, config):
     # Validate email format (contains '@')
     bad_emails = ~(df['email'].str.contains('@', na=False))
 
-    # Check DoB for yyyy-mm-dd
+    # Check DoB for nnnn-nn-nn and also that its a real yyyy-mm-dd date
     date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
-    bad_dates = ~(df['dob'].apply(lambda x: bool(date_pattern.match(x)) if x else False))
+    bad_format_dobs = ~(df['dob'].apply(lambda x: bool(date_pattern.match(x)) if x else False))
+    bad_date_dobs = ~(df['dob'].apply(lambda x: is_valid_date(x) if x else False))
 
     # Combine error series and write bad rows to separate csv file
-    bad_indexes = home_addr_incomplete | term_addr_incomplete | other_cols_missing | bad_emails | bad_dates
+    bad_indexes = home_addr_incomplete | term_addr_incomplete | other_cols_missing | bad_emails | bad_format_dobs | bad_date_dobs
     bad_rows = df[bad_indexes]
     write_header = not(os.path.exists(config['bad_data_path']))
     bad_rows.to_csv(config['bad_data_path'], mode='a', header=write_header, index=False)
@@ -160,40 +161,44 @@ def write_transformed_data(transformed_df: pd.DataFrame, config):
         transformed_df.to_csv(config['transformed_path'], mode='a', header=write_header, index=False)
 
     except Exception as e:
-        logging.critical(f"Error writing transformed student data: {e}")
+        logging.critical(f"{type(e).__name__} whilst writing transformed data: {e}")
         raise e
 
 
 def main():
-    start_time = time.time()
+    try:
+        start_time = time.time()
 
-    # General set-up
-    config = init()
-    init_output_files(config)
-    count_read = 0
-    count_transformed = 0
+        # General set-up
+        config = init()
+        init_output_files(config)
+        count_read = 0
+        count_transformed = 0
 
-    # Streams/chunks input file and for each chunk:
-    #   - check for correct columns
-    #   - cleanse data (exceptions go to 'bad_data' file)
-    #   - transform and write good data ('transformed' file)
-    for chunk in read_data_chunks(config, 200):
-        count_read += len(chunk)
-        chunk_copy = chunk.copy()
-        check_columns(chunk_copy)
-        chunk_copy = cleanse_data(chunk_copy, config)
-        chunk_copy = transform_parallel(chunk_copy)
-        count_transformed += len(chunk_copy)
-        write_transformed_data(chunk_copy, config)
+        # Streams/chunks input file and for each chunk:
+        #   - check for correct columns
+        #   - cleanse data (exceptions go to 'bad_data' file)
+        #   - transform and write good data ('transformed' file)
+        for chunk in read_data_chunks(config, 200):
+            count_read += len(chunk)
+            chunk_copy = chunk.copy()
+            check_columns(chunk_copy)
+            chunk_copy = cleanse_data(chunk_copy, config)
+            chunk_copy = transform_parallel(chunk_copy)
+            count_transformed += len(chunk_copy)
+            write_transformed_data(chunk_copy, config)
 
-    #  Final tidy up
-    logging.info(f"Rows read: {count_read}")
-    logging.info(f"Rows failed validation: {count_read - count_transformed}")
-    logging.info(f"Rows transformed: {count_transformed}")
+        #  Final tidy up
+        logging.info(f"Rows read: {count_read}")
+        logging.info(f"Rows failed validation: {count_read - count_transformed}")
+        logging.info(f"Rows transformed: {count_transformed}")
 
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    logging.info(f"Student transform complete. Elapsed time: {elapsed_time:.4f} seconds")
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logging.info(f"Student transform complete. Elapsed time: {elapsed_time:.4f} seconds")
+
+    except Exception as e:
+        logging.critical(f"{type(e).__name__} during transform: {e}")
 
 
 if __name__ == '__main__':

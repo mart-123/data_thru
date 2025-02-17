@@ -14,7 +14,7 @@ def init():
     set_up_logging(config)
 
     # Process-specific config (filenames)
-    config['input_path'] = os.path.join(config['data_dir'], 'student_programs_transformed.csv')
+    config['input_path'] = os.path.join(config['transformed_dir'], 'student_programs_transformed.csv')
 
     return config
 
@@ -63,7 +63,8 @@ def read_csv_in_chunks(config, chunk_size=200):
         total_read = 0
 
         for chunk in pd.read_csv(csv_path, chunksize=chunk_size):
-            chunk['dob'] = pd.to_datetime(chunk['dob'], format='%Y-%m-%d')    # convert DoB to date type (db col is date type)
+            # add data type transformations here
+            # chunk['dob'] = pd.to_datetime(chunk['dob'], format='%Y-%m-%d')    # convert DoB file to date type
             total_read += len(chunk)
             yield chunk
 
@@ -102,8 +103,8 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
         table_name = 'load_student_programs'
 
         # Declare which csv columns to use as insert values
-        csv_cols = ['student_guid', 'email', 'dob',
-                    'program_guid', 'program_code', 'program_name']
+        csv_cols = ['student_guid', 'email', 'program_guid', 'program_code',
+                    'program_name', 'enrol_date', 'fees_paid']
 
         # Build array of tuples as values for db mass-insert
         data_for_insert = csv_df[csv_cols].values.tolist()
@@ -111,8 +112,8 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
         # Setup insert command (with value placeholders)
         insert_cmd = f"""
             INSERT  INTO {table_name}
-                        (student_guid, email, dob, program_guid, program_code, program_name)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                        (student_guid, email, program_guid, program_code, program_name, enrol_date, fees_paid)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
 
         # bulk insert CSV data to load_students
@@ -153,7 +154,6 @@ def main():
         # In case of error, rollback DB transaction and display error
         logging.critical(f"DB transaction failed and rolling back: {e}")
         if conn:    conn.rollback()
-        raise
 
     finally:
         if cursor:  cursor.close()

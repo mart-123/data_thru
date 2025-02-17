@@ -4,7 +4,7 @@ import os
 import re
 from multiprocessing import Pool
 import time
-from etl_utils import get_config, set_up_logging
+from etl_utils import get_config, set_up_logging, is_valid_date
 
 
 def init():
@@ -13,9 +13,9 @@ def init():
     set_up_logging(config)
 
     # Process-specific config (typically filenames)
-    config['input_path'] = os.path.join(config['data_dir'], 'student_programs_extract.csv')
-    config['transformed_path'] = os.path.join(config['data_dir'], 'student_programs_transformed.csv')
-    config['bad_data_path'] = os.path.join(config['data_dir'], 'student_programs_bad_data.csv')
+    config['input_path'] = os.path.join(config['extracts_dir'], 'student_programs_extract.csv')
+    config['transformed_path'] = os.path.join(config['transformed_dir'], 'student_programs_transformed.csv')
+    config['bad_data_path'] = os.path.join(config['bad_data_dir'], 'student_programs_bad_data.csv')
 
     return config
 
@@ -32,7 +32,7 @@ def init_output_files(config):
             os.remove(config['bad_data_path'])
     
     except Exception as e:
-        logging.critical(f"Error initialising output files: {e}")
+        logging.critical(f"{type(e).__name__} whilst initialising output files: {e}")
         raise e
 
 
@@ -47,7 +47,7 @@ def read_data_chunks(config, chunk_size=500):
             yield chunk
 
     except Exception as e:
-        logging.critical(f"Error reading extract CSV: {e}")
+        logging.critical(f"{type(e).__name__} whilst reading extract CSV: {e}")
         raise e
 
 
@@ -55,7 +55,7 @@ def check_columns(df: pd.DataFrame):
     """
     Checks the student programs csv file contains all, and only, expected columns.
     """
-    expected_columns = ['stu_id','email','dob','program_id','program_code','program_name']
+    expected_columns = ['stu_id','email','program_id','program_code','program_name','enrol_date','fees_paid']
     missing_columns = []
 
     for col in expected_columns:
@@ -74,25 +74,28 @@ def cleanse_data(df: pd.DataFrame, config):
     Checks for missing/invalid values, writing bad rows to 'bad_data' CSV file.
     """
     # Fill NA columns with empty string (simplifies subsequent validation logic)
-    columns_to_fill = ['stu_id', 'email', 'dob', 'program_id', 'program_code', 'program_name']
+    columns_to_fill = ['stu_id', 'email', 'program_id', 'program_code', 'program_name','enrol_date','fees_paid']
     df[columns_to_fill] = df[columns_to_fill].fillna('')
 
-    # Convert email addresses to lowercase
+    # Convert email and fees_paid to lowercase
     df['email'] = df['email'].str.lower().str.strip()   # email to lowercase, remove spaces
+    df['fees_paid'] = df['fees_paid'].str.lower().str.strip()
+
 
     # Check for mandatory columns
-    other_cols_missing = ((df['stu_id'] == '') | (df['email'] == '') | (df['dob'] == '') |
+    other_cols_missing = ((df['stu_id'] == '') | (df['email'] == '') | (df['enrol_date'] == '') | (df['fees_paid'] == '') |
                         (df['program_id'] == '') | (df['program_code'] == '') | (df['program_name'] == ''))
 
     # Validate email format (contains '@')
     bad_emails = ~(df['email'].str.contains('@', na=False))
 
-    # Check DoB for yyyy-mm-dd
+    # Check enrol date for yyyy-mm-dd and also that it's an actual date
     date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
-    bad_dates = ~(df['dob'].apply(lambda x: bool(date_pattern.match(x)) if x else False))
+    bad_format_enrol_dates = ~(df['enrol_date'].apply(lambda x: bool(date_pattern.match(x)) if x else False))
+    bad_enrol_dates = ~(df['enrol_date'].apply(lambda x: is_valid_date(x) if x else False))
 
     # Combine error series and write bad rows to separate csv file
-    bad_indexes = other_cols_missing | bad_emails | bad_dates
+    bad_indexes = other_cols_missing | bad_emails | bad_format_enrol_dates | bad_enrol_dates
     bad_rows = df[bad_indexes]
     write_header = not(os.path.exists(config['bad_data_path']))
     bad_rows.to_csv(config['bad_data_path'], mode='a', header=write_header, index=False)
@@ -149,40 +152,45 @@ def write_transformed_data(transformed_df: pd.DataFrame, config):
         transformed_df.to_csv(config['transformed_path'], mode='a', header=write_header, index=False)
 
     except Exception as e:
-        logging.critical(f"Error writing transformed student data: {e}")
+        logging.critical(f"{type(e).__name__} whilst writing transformed student data: {e}")
         raise e
 
 
 def main():
-    start_time = time.time()
+    try:
+        start_time = time.time()
 
-    # General set-up
-    config = init()
-    init_output_files(config)
-    count_read = 0
-    count_transformed = 0
+        # General set-up
+        config = init()
+        init_output_files(config)
+        count_read = 0
+        count_transformed = 0
 
-    # Streams/chunks input file and for each chunk:
-    #   - check for correct columns
-    #   - cleanse data (exceptions go to 'bad_data' file)
-    #   - transform and write good data ('transformed' file)
-    for chunk in read_data_chunks(config, 200):
-        count_read += len(chunk)
-        chunk_copy = chunk.copy()
-        check_columns(chunk_copy)
-        chunk_copy = cleanse_data(chunk_copy, config)
-        chunk_copy = transform_parallel(chunk_copy)
-        count_transformed += len(chunk_copy)
-        write_transformed_data(chunk_copy, config)
+        # Streams/chunks input file and for each chunk:
+        #   - check for correct columns
+        #   - cleanse data (exceptions go to 'bad_data' file)
+        #   - transform and write good data ('transformed' file)
+        for chunk in read_data_chunks(config, 200):
+            count_read += len(chunk)
+            chunk_copy = chunk.copy()
+            check_columns(chunk_copy)
+            chunk_copy = cleanse_data(chunk_copy, config)
+            chunk_copy = transform_parallel(chunk_copy)
+            count_transformed += len(chunk_copy)
+            write_transformed_data(chunk_copy, config)
 
-    #  Final tidy up
-    logging.info(f"CSV rows read: {count_read}")
-    logging.info(f"CSV rows failed validation: {count_read - count_transformed}")
-    logging.info(f"CSV rows transformed: {count_transformed}")
+        #  Final tidy up
+        logging.info(f"CSV rows read: {count_read}")
+        logging.info(f"CSV rows failed validation: {count_read - count_transformed}")
+        logging.info(f"CSV rows transformed: {count_transformed}")
 
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    logging.info(f"Student program transform complete. Elapsed time: {elapsed_time:.4f} seconds")
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logging.info(f"Student program transform complete. Elapsed time: {elapsed_time:.4f} seconds")
+
+    except Exception as e:
+        # In case of error, rollback DB transaction and display error
+        logging.critical(f"{type(e).__name__} whilst processing student_programs_extract.csv : {e}")
 
 
 if __name__ == '__main__':

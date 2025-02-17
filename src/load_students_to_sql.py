@@ -14,7 +14,7 @@ def init():
     set_up_logging(config)
 
     # Process-specific config (typically filenames)
-    config['input_path'] = os.path.join(config['data_dir'], 'students_transformed.csv')
+    config['input_path'] = os.path.join(config['transformed_dir'], 'students_transformed.csv')
 
     return config
 
@@ -63,7 +63,7 @@ def read_students_in_chunks(config, chunk_size=200):
         total_read = 0
 
         for chunk in pd.read_csv(csv_path, chunksize=chunk_size):
-            chunk['dob'] = pd.to_datetime(chunk['dob'], format='%Y-%m-%d')    # convert DoB to date type (db col is date type)
+            chunk['dob'] = pd.to_datetime(chunk['dob'], format='%Y-%m-%d')    # convert DoB file to date type to match db col
             total_read += len(chunk)
             yield chunk
 
@@ -108,7 +108,8 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
         # Setup insert command (with value placeholders)
         insert_cmd = """
             INSERT  INTO load_students
-                        (student_guid, first_names, last_name, dob, phone, email, home_addr, home_postcode, home_country,
+                        (student_guid, first_names, last_name, dob, phone, email,
+                        home_addr, home_postcode, home_country,
                         term_addr, term_postcode, term_country)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
@@ -117,7 +118,7 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
         cursor.executemany(insert_cmd, data_for_insert)
 
     except Exception as e:
-        logging.critical(f"Error writing CSV data to load_students: {e}")
+        logging.critical(f"Error loading CSV data to load_students: {e}")
         raise
 
 
