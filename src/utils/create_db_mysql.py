@@ -126,6 +126,43 @@ def create_table_load_student_programs(cursor: mysql.connector.cursor.MySQLCurso
         raise
 
 
+def create_table_load_demographics(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_demographics'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    student_guid CHAR(36),
+                    ethnicity VARCHAR(3),
+                    gender VARCHAR(3),
+                    religion VARCHAR(3),
+                    sexid VARCHAR(3),
+                    sexort VARCHAR(3),
+                    trans VARCHAR(3),
+                    ethnicity_grp1 VARCHAR(3),
+                    ethnicity_grp2 VARCHAR(3),
+                    ethnicity_grp3 VARCHAR(3)
+                    );
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+
+
 def create_table_stage_students(cursor: mysql.connector.cursor.MySQLCursor):
     table_name = 'stage_students'
 
@@ -238,6 +275,7 @@ def main():
         cursor = conn.cursor()
         create_table_load_students(cursor)
         create_table_load_student_programs(cursor)
+        create_table_load_demographics(cursor)
         create_table_stage_students(cursor)
         create_table_stage_programs(cursor)
         create_table_stage_student_programs(cursor)

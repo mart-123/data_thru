@@ -11,31 +11,6 @@ CREATE TABLE hesa_3nf_course (
         PRIMARY KEY (COURSEID)
         );
 
-CREATE TABLE hesa_3nf_module (
-        crdtpts NUMERIC(3,0),
-        crdtscm NVARCHAR(2),
-        fte DECIMAL(4,1),
-        levlpts NVARCHAR(2),
-        modid NVARCHAR(50),
-        modlangid NVARCHAR(2),
-        mtitle NVARCHAR(255),
-        PRIMARY KEY (MODID)
-        );
-
-CREATE TABLE hesa_3nf_qualification (
-        qualcat NVARCHAR(5),
-        qualid NVARCHAR(50),
-        qualtitle NVARCHAR(255),
-        PRIMARY KEY (QUALID)
-        );
-
-CREATE TABLE hesa_3nf_sessionyear (
-        ownsessionid NVARCHAR(50),
-        sessionyearid NVARCHAR(50),
-        syenddate DATE,
-        systartdate DATE,
-        PRIMARY KEY (SESSIONYEARID)
-        );
 
 CREATE TABLE hesa_3nf_student (
         birthdte DATE,
@@ -64,14 +39,5 @@ CREATE TABLE hesa_3nf_student (
         uln NVARCHAR(10),
         z_nationgrp1 NVARCHAR(2),
         PRIMARY KEY (SID)
-        );
-
-CREATE TABLE hesa_3nf_venue (
-        ownvenueid NVARCHAR(50),
-        postcode VARCHAR(8),
-        venueid NVARCHAR(50),
-        venuename NVARCHAR(255),
-        venueukprn NVARCHAR(8),
-        PRIMARY KEY (VENUEID)
         );
 
