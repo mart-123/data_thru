@@ -55,7 +55,7 @@ def connect_to_db(config, ip_addr):
         exit(1)
 
 
-def create_table_load_students(cursor: mysql.connector.cursor.MySQLCursor):
+def create_load_students(cursor: mysql.connector.cursor.MySQLCursor):
     table_name = 'load_students'
 
     try:
@@ -92,7 +92,7 @@ def create_table_load_students(cursor: mysql.connector.cursor.MySQLCursor):
         raise
 
 
-def create_table_load_student_programs(cursor: mysql.connector.cursor.MySQLCursor):
+def create_load_student_programs(cursor: mysql.connector.cursor.MySQLCursor):
     table_name = 'load_student_programs'
 
     try:
@@ -126,7 +126,7 @@ def create_table_load_student_programs(cursor: mysql.connector.cursor.MySQLCurso
         raise
 
 
-def create_table_load_demographics(cursor: mysql.connector.cursor.MySQLCursor):
+def create_load_demographics(cursor: mysql.connector.cursor.MySQLCursor):
     table_name = 'load_demographics'
 
     try:
@@ -161,9 +161,7 @@ def create_table_load_demographics(cursor: mysql.connector.cursor.MySQLCursor):
         raise
 
 
-
-
-def create_table_stage_students(cursor: mysql.connector.cursor.MySQLCursor):
+def create_stage_students(cursor: mysql.connector.cursor.MySQLCursor):
     table_name = 'stage_students'
 
     try:
@@ -201,7 +199,7 @@ def create_table_stage_students(cursor: mysql.connector.cursor.MySQLCursor):
         raise
 
 
-def create_table_stage_programs(cursor: mysql.connector.cursor.MySQLCursor):
+def create_stage_programs(cursor: mysql.connector.cursor.MySQLCursor):
     table_name = 'stage_programs'
 
     try:
@@ -230,7 +228,7 @@ def create_table_stage_programs(cursor: mysql.connector.cursor.MySQLCursor):
         raise
 
 
-def create_table_stage_student_programs(cursor: mysql.connector.cursor.MySQLCursor):
+def create_stage_student_programs(cursor: mysql.connector.cursor.MySQLCursor):
     table_name = 'stage_student_programs'
 
     try:
@@ -260,6 +258,287 @@ def create_table_stage_student_programs(cursor: mysql.connector.cursor.MySQLCurs
         raise
 
 
+def create_load_hesa_static_22056_disability(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_disability'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal code',
+                    label VARCHAR(400) COMMENT 'Human-readable description relating to the LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for disability codes';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_ethnicity(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_ethnicity'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for ethnicity codes';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_genderid(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_genderid'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for GENDERID codes';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_religion(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_religion'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for RELIGION codes';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_sexid(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_sexid'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for SEXID codes';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_sexort(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_sexort'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for SEXORT codes';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_trans(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_trans'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for TRANS codes';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_z_ethnicgrp1(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_z_ethnicgrp1'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for Z_ETHNICGRP1';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_z_ethnicgrp2(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_z_ethnicgrp2'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for Z_ETHNICGRP2';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+def create_load_hesa_static_22056_z_ethnicgrp3(cursor: mysql.connector.cursor.MySQLCursor):
+    table_name = 'load_hesa_static_22056_z_ethnicgrp3'
+
+    try:
+        cursor.execute(f"""
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'        
+            """)
+        
+        if cursor.fetchone()[0] == 1:
+            print(f"Table {table_name} already exists")
+        else:
+            cursor.execute(f"""
+                CREATE TABLE {table_name} (
+                    code VARCHAR(5) COMMENT 'HESA-internal LOV code',
+                    label VARCHAR(400) COMMENT 'Description for LOV code'
+                    )
+                    COMMENT='HESA-provided LOV for Z_ETHNICGRP3';
+                """)
+            
+            print(f"Created table: {table_name}")
+
+    except mysql.connector.Error as err:
+        print(f"Error during creation of {table_name}: {err}")
+        raise
+
+
+
 
 def main():
     """
@@ -273,12 +552,22 @@ def main():
         ip_addr = get_windows_host_ip()
         conn = connect_to_db(config, ip_addr)
         cursor = conn.cursor()
-        create_table_load_students(cursor)
-        create_table_load_student_programs(cursor)
-        create_table_load_demographics(cursor)
-        create_table_stage_students(cursor)
-        create_table_stage_programs(cursor)
-        create_table_stage_student_programs(cursor)
+        create_load_students(cursor)
+        create_load_student_programs(cursor)
+        create_load_demographics(cursor)
+        create_stage_students(cursor)
+        create_stage_programs(cursor)
+        create_stage_student_programs(cursor)
+        create_load_hesa_static_22056_disability(cursor)
+        create_load_hesa_static_22056_ethnicity(cursor)
+        create_load_hesa_static_22056_genderid(cursor)
+        create_load_hesa_static_22056_religion(cursor)
+        create_load_hesa_static_22056_sexid(cursor)
+        create_load_hesa_static_22056_sexort(cursor)
+        create_load_hesa_static_22056_trans(cursor)
+        create_load_hesa_static_22056_z_ethnicgrp1(cursor)
+        create_load_hesa_static_22056_z_ethnicgrp2(cursor)
+        create_load_hesa_static_22056_z_ethnicgrp3(cursor)
         conn.commit()
         print("Table creation complete")
 

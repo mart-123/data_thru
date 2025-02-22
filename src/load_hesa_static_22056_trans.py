@@ -14,7 +14,7 @@ def init():
     set_up_logging(config)
 
     # Process-specific config (typically filenames)
-    config['input_path'] = os.path.join(config['transformed_dir'], 'demographics_transformed.csv')
+    config['input_path'] = os.path.join(config['static_dir'], 'hesa_22056_TRANS.csv')
 
     return config
 
@@ -80,16 +80,16 @@ def cleardown_sql_table(cursor):
     """
     try:
         # Get row count to be displayed after delete is finished
-        cursor.execute("SELECT COUNT(*) FROM load_demographics")
+        cursor.execute("SELECT COUNT(*) FROM load_hesa_static_22056_trans")
         row_count = cursor.fetchone()[0]
         
         # Delete all rows from the table (commit logic is in 'main')
-        cursor.execute("DELETE FROM load_demographics")
+        cursor.execute("DELETE FROM load_hesa_static_22056_trans")
 
-        logging.info(f"Deleted {row_count} rows from load_demographics")
+        logging.info(f"Deleted {row_count} rows from load_hesa_static_22056_trans")
 
     except Exception as e:
-        logging.critical(f"Error clearing down SQL table load_demographics: {e}")
+        logging.critical(f"Error clearing down SQL table load_hesa_static_22056_trans: {e}")
         raise
 
 
@@ -97,21 +97,19 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
     """Writes CSV rows to SQL table"""
     try:
         # Declare which csv columns to use as insert values
-        csv_cols = ['student_guid', 'ethnicity', 'gender', 'religion', 'sexid', 'sexort',
-                    'trans', 'ethnicity_grp1', 'ethnicity_grp2', 'ethnicity_grp3']
+        csv_cols = ['Code', 'Label']
 
         # Build array of tuples as values for db mass-insert
         data_for_insert = csv_df[csv_cols].values.tolist()
 
         # Setup insert command (with value placeholders)
         insert_cmd = """
-            INSERT  INTO load_demographics
-                        (student_guid, ethnicity, gender, religion, sexid, sexort,
-                        trans, ethnicity_grp1, ethnicity_grp2, ethnicity_grp3)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT  INTO load_hesa_static_22056_trans
+                        (code, label)
+                    VALUES (%s, %s)
             """
 
-        # bulk insert CSV data to load_students
+        # bulk insert to table
         cursor.executemany(insert_cmd, data_for_insert)
 
     except Exception as e:
