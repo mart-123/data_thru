@@ -1,6 +1,6 @@
 import os
 import json
-from etl_utils import get_config, set_up_logging
+from utils.etl_utils import get_config, set_up_logging
 
 
 def init():

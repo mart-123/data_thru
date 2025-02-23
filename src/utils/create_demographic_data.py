@@ -1,9 +1,7 @@
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
 import random
 import os
-from src.etl_utils import get_config
+from utils.etl_utils import get_config
 
 
 def init():

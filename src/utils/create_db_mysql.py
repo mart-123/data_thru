@@ -5,54 +5,13 @@ This module creates college database and tables.
 """
 import mysql.connector
 import mysql.connector.cursor
-from mysql.connector import errorcode
-import subprocess
-from etl_utils import get_config, set_up_logging
+from utils.etl_utils import get_config, set_up_logging, get_windows_host_ip, connect_to_db
 
 def init():
     config = get_config()
     set_up_logging(config)
 
     return config
-
-
-def get_windows_host_ip():
-    """Retrieves Windows host IP address (WSL2 loopback address)."""
-    try:
-        result = subprocess.run(['grep', 'nameserver', '/etc/resolv.conf'], capture_output=True, text=True)
-        ip_address = result.stdout.split()[1]
-        print(f"Got windows host IP address: {ip_address}")
-        return ip_address
-    except Exception as e:
-        print(f"Error retrieving Windows host IP address: {e}")
-        raise
-
-
-def connect_to_db(config, ip_addr):
-    """Connects to MySQL database and returns connection object"""
-    print("Connecting to MySQL database...")
-    try:
-        conn = mysql.connector.connect(
-            host=ip_addr,
-            port=config['db_port'],
-            user=config['db_user'],
-            password=config['db_pwd'],
-            database=config['db_name']
-            )
-
-        print("Successfully connected to db")
-        return conn
-
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("MySQL error: access denied, check credentials")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("MySQL error: database not found")
-        else:
-            print(f"MySQL error: {err}")
-        
-        # The only place we issue an 'exit' - nothing has yet happened
-        exit(1)
 
 
 def create_load_students(cursor: mysql.connector.cursor.MySQLCursor):

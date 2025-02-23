@@ -1,11 +1,7 @@
-import mysql.connector
-from mysql.connector import errorcode
-import mysql.connector.cursor
 import pandas as pd
 import os
 import logging
-import subprocess
-from etl_utils import get_config, set_up_logging
+from utils.etl_utils import get_config, set_up_logging, get_windows_host_ip, connect_to_db
 
 
 def init():
@@ -17,43 +13,6 @@ def init():
     config['input_path'] = os.path.join(config['static_dir'], 'hesa_22056_Z_ETHNICGRP1.csv')
 
     return config
-
-
-def get_windows_host_ip():
-    """Retrieves Windows host IP address (WSL2 loopback address)."""
-    try:
-        result = subprocess.run(['grep', 'nameserver', '/etc/resolv.conf'], capture_output=True, text=True)
-        ip_address = result.stdout.split()[1]
-        return ip_address
-    except Exception as e:
-        logging.critical(f"Error retrieving Windows host IP address: {e}")
-        raise
-
-
-def connect_to_db(config, ip_addr: str):
-    """Connects to MySQL database and returns connection object"""
-    try:
-        conn = mysql.connector.connect(
-            host=ip_addr,
-            port=config['db_port'],
-            user=config['db_user'],
-            password=config['db_pwd'],
-            database=config['db_name']
-            )
-
-        logging.info(f"Connected to db: {config['db_name']} host: {ip_addr} port: {config['db_port']}")
-        return conn
-
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            logging.critical(f"MySQL access denied, check credentials (config). Host: {ip_addr} port: {config['db_port']}, db: {config['db_name']}")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            logging.critical(f"MySQL database not found. Host: {ip_addr}, port: {config['db_port']}, db: {config['db_name']}")
-        else:
-            logging.critical(f"MySQL error: {err}")
-        
-        # raise RuntimeError(f"Failed db connection. Host: {ip_addr}, port: {config['db_port']}, db: {config['db_name']}")
-        raise
 
 
 def read_in_chunks(config, chunk_size=200):

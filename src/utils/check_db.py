@@ -3,16 +3,7 @@ Displays table columns in the college database
 """
 import sqlite3
 import os
-
-
-def connect_to_db(path):
-    try:
-        conn = sqlite3.connect(path, timeout=10)
-    except Exception as e:
-        print(f"Error connecting to db: {e}")
-        raise e
-
-    return conn
+from utils.etl_utils import connect_to_db
 
 
 def display_table_info(conn: sqlite3.Connection, table_name: str):
