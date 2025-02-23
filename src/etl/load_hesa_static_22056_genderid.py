@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import logging
-from utils.etl_utils import get_config, set_up_logging, get_windows_host_ip, connect_to_db
+from utils.etl_utils import get_config, set_up_logging, connect_to_db
 
 
 def init():
@@ -86,8 +86,7 @@ def main():
 
     try:
         # Connect to database
-        ip_addr = get_windows_host_ip()
-        conn = connect_to_db(config, ip_addr)
+        conn = connect_to_db(config)
         cursor = conn.cursor()
 
         # Delete existing data from load_students table

@@ -5,6 +5,20 @@ import datetime
 import subprocess
 import mysql.connector
 from mysql.connector import errorcode
+from dotenv import load_dotenv
+
+
+def get_windows_host_ip():
+    """Retrieves Windows host IP address (WSL2 loopback address)."""
+    try:
+        result = subprocess.run(
+            ["grep", "nameserver", "/etc/resolv.conf"], capture_output=True, text=True
+        )
+        ip_address = result.stdout.split()[1]
+        return ip_address
+    except Exception as e:
+        logging.critical(f"Error retrieving Windows host IP address: {e}")
+        raise
 
 
 def get_config(env="dev"):
@@ -16,35 +30,40 @@ def get_config(env="dev"):
         - add further config[] items for process-specific filepaths, etc
     """
     try:
-        # Get db connection config and use to initialise 'config' dictionary
-        script_path = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(script_path, "../data/config.json")
-        with open(config_path, "r") as config_file:
+        # Load project environment variables from .env file
+        # (db connection config and base dir/config file paths)
+        load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
+        base_dir = os.getenv("BASE_DIR")
+        config_file_path = os.getenv("CONFIG_FILE")
+
+        # Get config file (mainly directory paths)
+        with open(config_file_path, "r") as config_file:
             config = json.load(config_file)
 
-        # Append various directory/file paths to the 'config' dictionary
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        log_dir = os.path.join(script_dir, f"../logs/{env}")
-        data_dir = os.path.join(script_dir, f"../data")
-        extracts_dir = os.path.join(script_dir, f"../data/extracts")
-        bad_data_dir = os.path.join(script_dir, f"../data/bad_data")
-        transformed_dir = os.path.join(script_dir, f"../data/transformed")
-        static_dir = os.path.join(script_dir, f"../data/static")
-        config["script_dir"] = script_dir
-        config["log_dir"] = log_dir
-        config["data_dir"] = data_dir
-        config["extracts_dir"] = extracts_dir
-        config["bad_data_dir"] = bad_data_dir
-        config["transformed_dir"] = transformed_dir
-        config["static_dir"] = static_dir
-        config["info_log_file_path"] = os.path.join(log_dir, "etl_info.log")
-        config["error_log_file_path"] = os.path.join(log_dir, "etl_error.log")
+        # Build various directory/file paths from env vars and config values
+        config["base_dir"] = base_dir
+        config["log_dir"] = os.path.join(base_dir, config["log_dir"], env)
+        config["data_dir"] = os.path.join(base_dir, config["data_dir"])
+        config["extracts_dir"] = os.path.join(base_dir, config["extracts_dir"])
+        config["bad_data_dir"] = os.path.join(base_dir, config["bad_data_dir"])
+        config["transformed_dir"] = os.path.join(base_dir, config["transformed_dir"])
+        config["static_dir"] = os.path.join(base_dir, config["transformed_dir"])
+        config["info_log_file_path"] = os.path.join(config["log_dir"], "etl_info.log")
+        config["error_log_file_path"] = os.path.join(config["log_dir"], "etl_error.log")
+        config["etl_script_dir"] = os.path.join(base_dir, config["etl_script_dir"])
         config["env"] = env
 
+        # Get DB connection config
+        config["db_host_ip"] = get_windows_host_ip()
+        config["db_port"] = os.getenv("DB_PORT")
+        config["db_user"] = os.getenv("DB_USER")
+        config["db_pwd"] = os.getenv("DB_PWD")
+        config["db_name"] = os.getenv("DB_NAME")
+        
         return config
 
     except Exception as e:
-        logging.critical(f"Error opening config {config_path}: {e}")
+        logging.critical(f"Error loading config: {e}")
         raise
 
 
@@ -78,48 +97,35 @@ def set_up_logging(config):
         raise
 
 
-def connect_to_db(config, ip_addr: str):
+def connect_to_db(config):
     """Connects to MySQL database and returns connection object"""
     try:
         conn = mysql.connector.connect(
-            host=ip_addr,
+            host=config["db_host_ip"],
             port=config["db_port"],
             user=config["db_user"],
             password=config["db_pwd"],
-            database=config["db_name"],
+            database=config["db_name"]
         )
 
         logging.info(
-            f"Connected to db: {config['db_name']} host: {ip_addr} port: {config['db_port']}"
+            f"Connected to db: {config['db_name']} host: {config['db_host_ip']} port: {config['db_port']}"
         )
         return conn
 
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             logging.critical(
-                f"MySQL access denied, check credentials (config). Host: {ip_addr} port: {config['db_port']}, db: {config['db_name']}"
+                f"MySQL access denied, check credentials. Host: {config['db_host_ip']} port: {config['db_port']}, db: {config['db_name']}"
             )
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
             logging.critical(
-                f"MySQL database not found. Host: {ip_addr}, port: {config['db_port']}, db: {config['db_name']}"
+                f"MySQL database not found. Host: {config['db_host_ip']}, port: {config['db_port']}, db: {config['db_name']}"
             )
         else:
             logging.critical(f"MySQL error: {err}")
 
         # raise RuntimeError(f"Failed db connection. Host: {ip_addr}, port: {config['db_port']}, db: {config['db_name']}")
-        raise
-
-
-def get_windows_host_ip():
-    """Retrieves Windows host IP address (WSL2 loopback address)."""
-    try:
-        result = subprocess.run(
-            ["grep", "nameserver", "/etc/resolv.conf"], capture_output=True, text=True
-        )
-        ip_address = result.stdout.split()[1]
-        return ip_address
-    except Exception as e:
-        logging.critical(f"Error retrieving Windows host IP address: {e}")
         raise
 
 
