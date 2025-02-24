@@ -10,7 +10,9 @@ def init():
     set_up_logging(config)
 
     # Process-specific config (typically filenames)
-    config['input_path'] = os.path.join(config['static_dir'], 'hesa_22056_Z_ETHNICGRP2.csv')
+    config['output_table'] = "load_hesa_22056_lookup_z_ethnicgrp2"
+    config["input_file"] = "hesa_22056_Z_ETHNICGRP2.csv"
+    config['input_path'] = os.path.join(config['lookups_dir'], config['input_file'])
 
     return config
 
@@ -32,27 +34,27 @@ def read_in_chunks(config, chunk_size=200):
         raise
 
 
-def cleardown_sql_table(cursor):
+def cleardown_sql_table(cursor, config):
     """
     Delete all rows from the load_students table (as a load table
     its contents do not persist over time).
     """
     try:
         # Get row count to be displayed after delete is finished
-        cursor.execute("SELECT COUNT(*) FROM load_hesa_static_22056_z_ethnicgrp2")
+        cursor.execute(f"SELECT COUNT(*) FROM {config['output_table']}")
         row_count = cursor.fetchone()[0]
         
         # Delete all rows from the table (commit logic is in 'main')
-        cursor.execute("DELETE FROM load_hesa_static_22056_z_ethnicgrp2")
+        cursor.execute(f"DELETE FROM {config['output_table']}")
 
-        logging.info(f"Deleted {row_count} rows from load_hesa_static_22056_z_ethnicgrp2")
+        logging.info(f"Deleted {row_count} rows from {config['output_table']}")
 
     except Exception as e:
-        logging.critical(f"Error clearing down SQL table load_hesa_static_22056_z_ethnicgrp2: {e}")
+        logging.critical(f"Error clearing down SQL table {config['output_table']}: {e}")
         raise
 
 
-def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
+def write_to_db_execute_many(csv_df: pd.DataFrame, cursor, config):
     """Writes CSV rows to SQL table"""
     try:
         # Declare which csv columns to use as insert values
@@ -61,11 +63,15 @@ def write_to_db_execute_many(csv_df: pd.DataFrame, cursor):
         # Build array of tuples as values for db mass-insert
         data_for_insert = csv_df[csv_cols].values.tolist()
 
+        # Append source filename to each values row for insert
+        for row in data_for_insert:
+            row.append(config["input_file"])
+
         # Setup insert command (with value placeholders)
-        insert_cmd = """
-            INSERT  INTO load_hesa_static_22056_z_ethnicgrp2
-                        (code, label)
-                    VALUES (%s, %s)
+        insert_cmd = f"""
+            INSERT  INTO {config['output_table']}
+                        (code, label, source_file)
+                    VALUES (%s, %s, %s)
             """
 
         # bulk insert to table
@@ -90,12 +96,12 @@ def main():
         cursor = conn.cursor()
 
         # Delete existing data from load_students table
-        cleardown_sql_table(cursor)
+        cleardown_sql_table(cursor, config)
 
         # Read data from CSV file
         total_written = 0
         for chunk in(read_in_chunks(config)):
-            write_to_db_execute_many(chunk, cursor)
+            write_to_db_execute_many(chunk, cursor, config)
             conn.commit()
             total_written += len(chunk)
 

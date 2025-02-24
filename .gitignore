@@ -2,3 +2,4 @@
 data/
 venv_dev/
 logs/
+.env

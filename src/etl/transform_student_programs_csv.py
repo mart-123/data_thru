@@ -4,6 +4,7 @@ import os
 import re
 from multiprocessing import Pool
 import time
+import traceback
 from utils.etl_utils import get_config, set_up_logging, is_valid_date
 
 
@@ -80,7 +81,6 @@ def cleanse_data(df: pd.DataFrame, config):
     # Convert email and fees_paid to lowercase
     df['email'] = df['email'].str.lower().str.strip()   # email to lowercase, remove spaces
     df['fees_paid'] = df['fees_paid'].str.lower().str.strip()
-
 
     # Check for mandatory columns
     other_cols_missing = ((df['stu_id'] == '') | (df['email'] == '') | (df['enrol_date'] == '') | (df['fees_paid'] == '') |
@@ -191,7 +191,7 @@ def main():
     except Exception as e:
         # In case of error, rollback DB transaction and display error
         logging.critical(f"{type(e).__name__} whilst processing student_programs_extract.csv : {e}")
-
+        logging.critical(traceback.format_exc())
 
 if __name__ == '__main__':
     main()
