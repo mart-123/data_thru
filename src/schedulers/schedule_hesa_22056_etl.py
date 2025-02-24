@@ -23,7 +23,19 @@ def run_load_scripts(config):
         print("Waiting for transforms to finish...")
         time.sleep(10)  # Check every 10 seconds
     print("Running loads...")
-    subprocess.run(["python3", f"{config['etl_script_dir']}/load_students_to_sql.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_students.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_student_programs.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_demographics.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_disability.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_ethnicity.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_genderid.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_religion.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_sexid.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_sexort.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_trans.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_z_ethnicgrp1.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_z_ethnicgrp2.py"])
+    subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_z_ethnicgrp3.py"])
     print("Finished loads")
 
 
