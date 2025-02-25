@@ -1,9 +1,8 @@
 # mysql is running in windows. Basic server info:
 # Server instance: MySQL92
 """
-This module creates HESA load tables for the 22056 delivery. For subsequent deliveries
-(e.g. 23056, 24056) clone this script with new table names. These subsequent sets of
-load tables will need to be added to merge logic for loading the nn056 stage tables.
+This module creates HESA stage tables. Note the nn056 designation, these tables
+take a merge of multiple load tables each from 22056 onwards under the nn056 schema.
 """
 import mysql.connector
 import traceback
@@ -19,9 +18,9 @@ def init():
 
 def generate_create_statements():
     create_statements = {
-        'load_hesa_22056_students':
+        'stage_hesa_nn056_students':
             """
-            CREATE TABLE load_hesa_22056_students (
+            CREATE TABLE stage_hesa_nn056_students (
                 student_guid CHAR(36),
                 first_names VARCHAR(250),
                 last_name VARCHAR(250),
@@ -34,31 +33,40 @@ def generate_create_statements():
                 term_postcode VARCHAR(50),
                 term_country VARCHAR(100),
                 dob DATE,
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
-                COMMENT='Student records';
+                COMMENT='Student records delivered from HESA nn056 schema';
             """,
-        'load_hesa_22056_student_programs':
+        'stage_hesa_nn056_student_programs':
             """
-            CREATE TABLE load_hesa_22056_student_programs (
-                student_guid CHAR(36) COMMENT 'Source system student id',
-                email VARCHAR(250) COMMENT 'Student email, included here only for data verification',
-                program_guid CHAR(36) COMMENT 'Vendor-provided unique id for program of study',
+            CREATE TABLE stage_hesa_nn056_student_programs (
+                student_guid CHAR(36) COMMENT 'HESA db-internal PK student id (actually they use fixed-len numeric)',
+                program_guid CHAR(36) COMMENT 'HESA db-internal PK for program',
+                enrol_date DATE COMMENT 'Date on which student enrolled for academic session',
+                fees_paid CHAR(1) COMMENT 'Indicates whether fees have been paid for the academic session',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                source_file VARCHAR(250) COMMENT 'File from which data was loaded',
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
+                )
+                COMMENT='Student-program links delivered from HESA nn056 schema';
+            """,
+        'stage_hesa_nn056_programs':
+            """
+            CREATE TABLE stage_hesa_nn056_programs (
+                program_guid CHAR(36) COMMENT 'HESA db-internal PK for program',
                 program_code VARCHAR(10) COMMENT 'Human-readable, unique code for the program of study',
                 program_name VARCHAR(100) COMMENT 'The program name that will appear on award certificate',
-                enrol_date DATE COMMENT 'Date on which student enrolled for the academic session',
-                fees_paid CHAR(1) COMMENT 'Indicates whether fees have been paid for the academic session',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
-                COMMENT='Student-program links combined with program details (i.e. denormalised)';
+                COMMENT='Student-program links, re-normalised (CSV from hesa was denormalised)';
             """,
-        'load_hesa_22056_student_demographics':
+        'stage_hesa_nn056_student_demographics':
             """
-            CREATE TABLE load_hesa_22056_student_demographics (
+            CREATE TABLE stage_hesa_nn056_student_demographics (
                 student_guid CHAR(36),
                 ethnicity VARCHAR(3),
                 gender VARCHAR(3),
@@ -69,118 +77,118 @@ def generate_create_statements():
                 ethnicity_grp1 VARCHAR(3),
                 ethnicity_grp2 VARCHAR(3),
                 ethnicity_grp3 VARCHAR(3),
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 );
             """,
-        'load_hesa_22056_lookup_disability':
+        'stage_hesa_nn056_lookup_disability':
             """
-            CREATE TABLE load_hesa_22056_lookup_disability (
+            CREATE TABLE stage_hesa_nn056_lookup_disability (
                 code VARCHAR(5) COMMENT 'HESA-internal code',
                 label VARCHAR(400) COMMENT 'Human-readable description relating to the lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for DISABILTIY codes';
             """,
-        'load_hesa_22056_lookup_ethnicity':
+        'stage_hesa_nn056_lookup_ethnicity':
             """
-            CREATE TABLE load_hesa_22056_lookup_ethnicity (
+            CREATE TABLE stage_hesa_nn056_lookup_ethnicity (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for ETHNICITY code';
             """,
-        'load_hesa_22056_lookup_genderid':
+        'stage_hesa_nn056_lookup_genderid':
             """
-            CREATE TABLE load_hesa_22056_lookup_genderid (
+            CREATE TABLE stage_hesa_nn056_lookup_genderid (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for GENDERID code';
             """,
-        'load_hesa_22056_lookup_religion':
+        'stage_hesa_nn056_lookup_religion':
             """
-            CREATE TABLE load_hesa_22056_lookup_religion (
+            CREATE TABLE stage_hesa_nn056_lookup_religion (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for RELIGION code';
             """,
-        'load_hesa_22056_lookup_sexid':
+        'stage_hesa_nn056_lookup_sexid':
             """
-            CREATE TABLE load_hesa_22056_lookup_sexid (
+            CREATE TABLE stage_hesa_nn056_lookup_sexid (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for SEXID code';
             """,
-        'load_hesa_22056_lookup_sexort':
+        'stage_hesa_nn056_lookup_sexort':
             """
-            CREATE TABLE load_hesa_22056_lookup_sexort (
+            CREATE TABLE stage_hesa_nn056_lookup_sexort (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for SEXORT code';
             """,
-        'load_hesa_22056_lookup_trans':
+        'stage_hesa_nn056_lookup_trans':
             """
-            CREATE TABLE load_hesa_22056_lookup_trans (
+            CREATE TABLE stage_hesa_nn056_lookup_trans (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for TRANS code';
             """,
-        'load_hesa_22056_lookup_z_ethnicgrp1':
+        'stage_hesa_nn056_lookup_z_ethnicgrp1':
             """
-            CREATE TABLE load_hesa_22056_lookup_z_ethnicgrp1 (
+            CREATE TABLE stage_hesa_nn056_lookup_z_ethnicgrp1 (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for Z_ETHNICGRP1';
             """,
-        'load_hesa_22056_lookup_z_ethnicgrp2':
+        'stage_hesa_nn056_lookup_z_ethnicgrp2':
             """
-            CREATE TABLE load_hesa_22056_lookup_z_ethnicgrp2 (
+            CREATE TABLE stage_hesa_nn056_lookup_z_ethnicgrp2 (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for Z_ETHNICGRP2';
             """,
-        'load_hesa_22056_lookup_z_ethnicgrp3':
+        'stage_hesa_nn056_lookup_z_ethnicgrp3':
             """
-            CREATE TABLE load_hesa_22056_lookup_z_ethnicgrp3 (
+            CREATE TABLE stage_hesa_nn056_lookup_z_ethnicgrp3 (
                 code VARCHAR(5) COMMENT 'HESA-internal lookup code',
                 label VARCHAR(400) COMMENT 'Description for lookup code',
-                load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
+                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) DEFAULT '22056' COMMENT 'Originating HESA delivery'
+                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='HESA-provided lookup for Z_ETHNICGRP3';
             """,
@@ -228,7 +236,7 @@ def main():
         print("Table creation complete")
 
     except Exception as e:
-#        print(f"Error during table creation: {e}")
+#        print(f"Error during stage table creation: {e}")
         traceback.print_exc()
         if conn:
             conn.rollback()
