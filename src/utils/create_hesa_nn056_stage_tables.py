@@ -33,6 +33,15 @@ def generate_create_statements():
                 term_postcode VARCHAR(50),
                 term_country VARCHAR(100),
                 dob DATE,
+                ethnicity VARCHAR(3),
+                gender VARCHAR(3),
+                religion VARCHAR(3),
+                sexid VARCHAR(3),
+                sexort VARCHAR(3),
+                trans VARCHAR(3),
+                ethnicity_grp1 VARCHAR(3),
+                ethnicity_grp2 VARCHAR(3),
+                ethnicity_grp3 VARCHAR(3),
                 insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
                 hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
@@ -63,24 +72,6 @@ def generate_create_statements():
                 hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
                 COMMENT='Student-program links, re-normalised (CSV from hesa was denormalised)';
-            """,
-        'stage_hesa_nn056_student_demographics':
-            """
-            CREATE TABLE stage_hesa_nn056_student_demographics (
-                student_guid CHAR(36),
-                ethnicity VARCHAR(3),
-                gender VARCHAR(3),
-                religion VARCHAR(3),
-                sexid VARCHAR(3),
-                sexort VARCHAR(3),
-                trans VARCHAR(3),
-                ethnicity_grp1 VARCHAR(3),
-                ethnicity_grp2 VARCHAR(3),
-                ethnicity_grp3 VARCHAR(3),
-                insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
-                source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-                hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
-                );
             """,
         'stage_hesa_nn056_lookup_disability':
             """
