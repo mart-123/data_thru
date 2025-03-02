@@ -1,5 +1,5 @@
 """
-Merge all 22056/23056/etc student and demographic load tables into one nn056 stage table. 
+Get distinct programme details from un-normalised load table, store in nn056 stage table. 
 """
 import pandas as pd
 import logging
@@ -12,7 +12,7 @@ def init():
     set_up_logging(config)
 
     # Process-specific config (typically filenames)
-    config['output_table'] = 'stage_hesa_nn056_students'
+    config['output_table'] = 'stage_hesa_nn056_programs'
 
     return config
 
@@ -23,15 +23,9 @@ def read_in_chunks(conn, chunk_size=200):
         cursor = conn.cursor(buffered=True)
 
         sql_select = """
-                SELECT  t1.student_guid, t1.first_names, t1.last_name, t1.phone, t1.email, t1.dob,
-                        t1.home_addr, t1.home_postcode, t1.home_country, t1.term_addr, t1.term_postcode, t1.term_country,
-                        t1.source_file stu_src_file, t1.hesa_delivery,
-                        t2.ethnicity, t2.gender, t2.religion, t2.sexid, t2.sexort, t2.trans,
-                        t2.ethnicity_grp1, t2.ethnicity_grp2, t2.ethnicity_grp3
-                FROM load_hesa_22056_students t1
-                INNER JOIN load_hesa_22056_student_demographics t2
-                        ON t2.student_guid = t1.student_guid;
-                """
+                    SELECT DISTINCT t1.program_guid, t1.program_code, t1.program_name, t1.source_file, t1.hesa_delivery
+                    FROM load_hesa_22056_student_programs t1
+                    """
 
         cursor.execute(sql_select)
         total_read = 0
@@ -46,10 +40,10 @@ def read_in_chunks(conn, chunk_size=200):
             total_read += len(chunk)
             yield df_chunk
 
-        logging.info(f"Read {total_read} rows from main join")
+        logging.info(f"Read {total_read} rows from main query")
 
     except Exception as e:
-        logging.info(f"Error loading CSV file into DataFrame: {e}")
+        logging.info(f"Error loading SQL results set into DataFrame: {e}")
         raise
 
 
@@ -75,16 +69,13 @@ def cleardown_sql_table(conn, config):
 
 
 def write_to_db_execute_many(input_df: pd.DataFrame, conn, config):
+    """Write input rows to output table."""
     try:
         cursor = conn.cursor(buffered=True)
 
-        # Declare which retrieve columns to use as insert values
-        input_cols = ['student_guid', 'first_names', 'last_name', 'dob', 'phone', 'email',
-                    'home_addr', 'home_postcode', 'home_country',
-                    'term_addr', 'term_postcode', 'term_country',
-                    'ethnicity', 'gender', 'religion', 'sexid', 'sexort', 'trans',
-                    'ethnicity_grp1', 'ethnicity_grp2', 'ethnicity_grp3', 'hesa_delivery',
-                    'stu_src_file']
+        # Declare which retrieved columns to use as insert values
+        input_cols = ['program_guid', 'program_code', 'program_name',
+                    'source_file', 'hesa_delivery']
 
         # Build array of tuples as values for db mass-insert
         data_for_insert = input_df[input_cols].values.tolist()
@@ -92,13 +83,9 @@ def write_to_db_execute_many(input_df: pd.DataFrame, conn, config):
         # Setup insert command (with value placeholders)
         insert_cmd = f"""
             INSERT  INTO {config['output_table']}
-                        (student_guid, first_names, last_name, dob, phone, email,
-                        home_addr, home_postcode, home_country,
-                        term_addr, term_postcode, term_country,
-                        ethnicity, gender, religion, sexid, sexort, trans,
-                        ethnicity_grp1, ethnicity_grp2, ethnicity_grp3, hesa_delivery, source_file)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        (program_guid, program_code, program_name,
+                        source_file, hesa_delivery)
+                    VALUES (%s, %s, %s, %s, %s)
             """
 
         # bulk insert CSV data to load_students

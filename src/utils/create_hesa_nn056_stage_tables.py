@@ -104,7 +104,7 @@ def generate_create_statements():
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
                 hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery'
                 )
-                COMMENT='HESA-provided lookup for GENDERID code';
+                COMMENT='HESA-provided lookup for GENDERID code, denoting whether student identifies with birth-registered sex';
             """,
         'stage_hesa_nn056_lookup_religion':
             """
