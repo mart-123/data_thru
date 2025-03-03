@@ -54,7 +54,8 @@ def get_config(env="dev"):
         config["env"] = env
 
         # Get DB connection config
-        config["db_host_ip"] = get_windows_host_ip()
+#        config["db_host_ip"] = get_windows_host_ip() # only for windows-hosted MySQL
+        config["db_host_ip"] = "localhost"
         config["db_port"] = os.getenv("DB_PORT")
         config["db_user"] = os.getenv("DB_USER")
         config["db_pwd"] = os.getenv("DB_PWD")
