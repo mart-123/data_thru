@@ -3,3 +3,4 @@ data/
 venv_dev/
 logs/
 .env
+docker-compose.yml

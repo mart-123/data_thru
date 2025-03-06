@@ -32,7 +32,8 @@ def get_config(env="dev"):
     try:
         # Load project environment variables from .env file
         # (db connection config and base dir/config file paths)
-        load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
+        dotenv_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env')
+        load_dotenv(dotenv_file)
         base_dir = os.getenv("BASE_DIR")
         config_file_path = os.getenv("CONFIG_FILE")
 

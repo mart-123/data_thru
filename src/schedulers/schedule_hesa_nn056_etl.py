@@ -1,32 +1,25 @@
-import schedule
 import time
 import subprocess
-import os
+from prefect import task, flow
+from prefect.tasks import task_input_hash
+from datetime import timedelta
 from utils.etl_utils import get_config
 
 script_A_running = False
 
+@task
 def run_transform_scripts(config):
-    global transforms_running
-    transforms_running = True
     print("Running transforms...")
     subprocess.run(["python3", f"{config['etl_script_dir']}/transform_students_csv.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/transform_demographics_csv.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/transform_student_programs_csv.py"])
     print("Finished transforms")
-    transforms_running = False
+    return True
 
 
+@task
 def run_load_scripts(config):
-    """Waits for transforms to finish, then invokes load scripts"""
-    while transforms_running:
-        print("Waiting for transforms to finish...")
-        time.sleep(10)  # Check every 10 seconds
-    
-    global loads_running
-    loads_running = True
     print("Running loads...")
-
     subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_students.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_student_programs.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_demographics.py"])
@@ -40,14 +33,12 @@ def run_load_scripts(config):
     subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_z_ethnicgrp1.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_z_ethnicgrp2.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/load_hesa_22056_lookup_z_ethnicgrp3.py"])
-
-    loads_running = False
     print("Finished loads")
+    return True
 
 
+@task
 def run_stage_scripts(config):
-    global stages_running
-    stages_running = True
     print("Running stages...")
     subprocess.run(["python3", f"{config['etl_script_dir']}/stage_hesa_nn056_students.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/stage_hesa_nn056_programs.py"])
@@ -62,38 +53,34 @@ def run_stage_scripts(config):
     subprocess.run(["python3", f"{config['etl_script_dir']}/stage_hesa_nn056_lookup_z_ethnicgrp1.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/stage_hesa_nn056_lookup_z_ethnicgrp2.py"])
     subprocess.run(["python3", f"{config['etl_script_dir']}/stage_hesa_nn056_lookup_z_ethnicgrp3.py"])
-
     print("Finished stages")
-    stages_running = False
+    return True
 
 
-def etl_scheduled(config):
-    # Schedule script_A to run at 03:00
-    schedule.every().day.at("15:00").do(run_transform_scripts(config))
+@task
+def get_config_task():
+    return get_config()
 
-    # Schedule script_B to run at 04:00
-    schedule.every().day.at("15:01").do(run_load_scripts(config))
 
-    # Schedule script_B to run at 04:00
-    schedule.every().day.at("15:02").do(run_stage_scripts(config))
+@flow(name="ETL Flow")
+def etl_flow():
+    config = get_config_task()
 
-    # Keep the script running to monitor the schedule
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    transform_result = run_transform_scripts(config)    # implicit dependency
+    load_result = run_load_scripts(config, wait_for=[transform_result])
+    stage_result = run_stage_scripts(config, wait_for=[load_result])
     
-
-def etl_immediately(config):
-    run_transform_scripts(config)
-    run_load_scripts(config)
-    run_stage_scripts(config)
+    return {"transform": transform_result, "load": load_result, "stage": stage_result}
 
 
 def main():
     config = get_config()
-    etl_immediately(config)
-#    etl_scheduled(config)
+    results = etl_flow()
 
+    if all(results.values()):
+        print("ETL pipeline completed")
+    else:
+        print(f"ETL pipeline failed: {results}")
 
 if __name__ == '__main__':
     main()
