@@ -13,6 +13,13 @@ def init():
     config['output_table'] = 'load_hesa_22056_student_programs'
     config["input_file"] = "student_programs_transformed.csv"
     config['input_path'] = os.path.join(config['transformed_dir'], config['input_file'])
+    config['column_mappings'] = {"student_guid": "student_guid",
+                                 "email": "email",
+                                 "program_guid": "program_guid",
+                                 "program_code": "program_code",
+                                 "program_name": "program_name",
+                                 "enrol_date": "enrol_date",
+                                 "fees_paid": "fees_paid"}
 
     return config
 
@@ -59,22 +66,27 @@ def cleardown_sql_table(cursor, config):
 def write_to_db_execute_many(csv_df: pd.DataFrame, cursor, config):
     """Writes CSV rows to SQL table load_students."""
     try:
-        # Declare which csv columns to use as insert values
-        csv_cols = ['student_guid', 'email', 'program_guid', 'program_code',
-                    'program_name', 'enrol_date', 'fees_paid']
+        # Set up lists of source (csv) and destination (sql table) columns
+        column_mappings: dict = config['column_mappings']
+        source_cols = list(column_mappings.keys())
+        target_cols = list(column_mappings.values())
 
-        # Build array of tuples as values for db mass-insert
-        data_for_insert = csv_df[csv_cols].values.tolist()
+        # Build list of tuples as values for db mass-insert
+        data_for_insert = csv_df[source_cols].values.tolist()
 
-        # Append source filename to each values row for insert
+        # Add 'source file' column to target columns list and
+        # add corresponding source filename to value row.
+        target_cols.append('source_file')
         for row in data_for_insert:
             row.append(config["input_file"])
 
         # Setup insert command (with value placeholders)
+        columns = ', '.join(target_cols)
+        placeholders = ', '.join(['%s'] * len(target_cols))
         insert_cmd = f"""
-            INSERT  INTO {config['output_table']}
-                        (student_guid, email, program_guid, program_code, program_name, enrol_date, fees_paid, source_file)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO {config['output_table']}
+                        ({columns})
+                    VALUES ({placeholders})
             """
 
         # bulk insert CSV data to load_students
