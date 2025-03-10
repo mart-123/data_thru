@@ -13,20 +13,22 @@ def init():
 
     # Process-specific config (typically filenames)
     config['output_table'] = 'stage_hesa_nn056_lookup_sexid'
+    config['output_cols'] = ['code', 'label', 'source_file', 'hesa_delivery']
+
+    config['source_query'] = {
+        "sql": """SELECT t1.code, t1.label, t1.source_file, t1.hesa_delivery
+                  FROM load_hesa_22056_lookup_sexid t1""",
+        "cols": ['code', 'label', 'source_file', 'hesa_delivery']
+    }
 
     return config
 
 
-def read_in_chunks(conn, chunk_size=200):
+def read_in_chunks(conn, config, chunk_size=200):
     """Generator function, executes main query, returns in chunks."""
     cursor = conn.cursor(buffered=True)
 
-    sql_select = """
-                SELECT t1.code, t1.label, t1.source_file, t1.hesa_delivery
-                FROM load_hesa_22056_lookup_sexid t1
-                """
-
-    cursor.execute(sql_select)
+    cursor.execute(config["source_query"]["sql"])
     total_read = 0
 
     while True:
@@ -36,7 +38,7 @@ def read_in_chunks(conn, chunk_size=200):
 
         total_read += len(chunk)
 
-        df_chunk = pd.DataFrame(chunk, columns=[desc[0] for desc in cursor.description])
+        df_chunk = pd.DataFrame(chunk, columns=config['source_query']['cols']) 
         yield df_chunk
 
     logging.info(f"Read {total_read} rows from main query")
@@ -58,14 +60,20 @@ def write_to_db_execute_many(input_df: pd.DataFrame, conn, config):
     """Write input rows to output table."""
     cursor = conn.cursor(buffered=True)
 
+    input_cols = config['source_query']['cols']
+    output_cols = config['output_cols']
+
     # Build list of tuples (insert values) using cols from input select
-    input_cols = ['code', 'label', 'source_file', 'hesa_delivery']
     data_for_insert = input_df[input_cols].values.tolist()
+
+    # Dynamically build insert statement
+    columns = ', '.join(output_cols)
+    placeholders = ', '.join(['%s'] * len(output_cols))
 
     insert_cmd = f"""
         INSERT  INTO {config['output_table']}
-                    (code, label, source_file, hesa_delivery)
-                VALUES (%s, %s, %s, %s)
+                    ({columns})
+                VALUES ({placeholders})
         """
 
     cursor.executemany(insert_cmd, data_for_insert)
@@ -80,7 +88,7 @@ def main():
         cleardown_sql_table(conn, config)
 
         total_written = 0
-        for chunk in(read_in_chunks(conn)):
+        for chunk in(read_in_chunks(conn, config)):
             write_to_db_execute_many(chunk, conn, config)
             conn.commit()
             total_written += len(chunk)
