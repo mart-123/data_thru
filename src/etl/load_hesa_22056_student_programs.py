@@ -124,7 +124,7 @@ def main():
 
     except Exception as e:
         # In case of error, rollback DB transaction and display error
-        logging.critical(f"DB transaction failed and rolling back: {e}")
+        logging.critical(f"Error in ETL process: {e}")
         if conn:    conn.rollback()
 
     finally:

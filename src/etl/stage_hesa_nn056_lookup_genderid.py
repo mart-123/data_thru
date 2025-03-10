@@ -97,7 +97,7 @@ def main():
         logging.info(f"Wrote {total_written} rows to SQL table")
 
     except Exception as e:
-        logging.critical(f"DB transaction failed and rolling back: {e}")
+        logging.critical(f"Error in ETL process: {e}")
         if conn:
             conn.rollback()
         raise

@@ -13,39 +13,33 @@ def init():
 
     # Process-specific config (typically filenames)
     config['output_table'] = 'stage_hesa_nn056_programs'
+    config['output_cols'] = ['program_guid', 'program_code', 'program_name', 'source_file', 'hesa_delivery']
+
+    config['source_query'] = {'sql': """SELECT DISTINCT t1.program_guid, t1.program_code, t1.program_name, t1.source_file, t1.hesa_delivery
+                                        FROM load_hesa_22056_student_programs t1""",
+                             'cols': ['program_guid', 'program_code', 'program_name', 'source_file', 'hesa_delivery']}
 
     return config
 
 
-def read_in_chunks(conn, chunk_size=200):
+def read_in_chunks(conn, config, chunk_size=200):
     """Generator function, executes main query, returns in chunks."""
-    try:
-        cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor(buffered=True)
 
-        sql_select = """
-                    SELECT DISTINCT t1.program_guid, t1.program_code, t1.program_name, t1.source_file, t1.hesa_delivery
-                    FROM load_hesa_22056_student_programs t1
-                    """
+    cursor.execute(config["source_query"]["sql"])
+    total_read = 0
 
-        cursor.execute(sql_select)
-        total_read = 0
+    while True:
+        chunk = cursor.fetchmany(chunk_size)
+        if not chunk:
+            break
 
-        while True:
-            chunk = cursor.fetchmany(chunk_size)
-            if not chunk:
-                break
+        total_read += len(chunk)
 
-            # Convert chunk to dataframe (using cursor)
-            df_chunk = pd.DataFrame(chunk, columns=[desc[0] for desc in cursor.description])
-            total_read += len(chunk)
-            yield df_chunk
+        df_chunk = pd.DataFrame(chunk, columns=config['source_query']['cols']) 
+        yield df_chunk
 
-        logging.info(f"Read {total_read} rows from main query")
-
-    except Exception as e:
-        logging.info(f"Error loading SQL results set into DataFrame: {e}")
-        raise
-
+    logging.info(f"Read {total_read} rows from main query")
 
 def cleardown_sql_table(conn, config):
     """
@@ -70,30 +64,25 @@ def cleardown_sql_table(conn, config):
 
 def write_to_db_execute_many(input_df: pd.DataFrame, conn, config):
     """Write input rows to output table."""
-    try:
-        cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor(buffered=True)
 
-        # Declare which retrieved columns to use as insert values
-        input_cols = ['program_guid', 'program_code', 'program_name',
-                    'source_file', 'hesa_delivery']
+    input_cols = config['source_query']['cols']
+    output_cols = config['output_cols']
 
-        # Build array of tuples as values for db mass-insert
-        data_for_insert = input_df[input_cols].values.tolist()
+    # Build list of tuples (insert values) using cols from input select
+    data_for_insert = input_df[input_cols].values.tolist()
 
-        # Setup insert command (with value placeholders)
-        insert_cmd = f"""
-            INSERT  INTO {config['output_table']}
-                        (program_guid, program_code, program_name,
-                        source_file, hesa_delivery)
-                    VALUES (%s, %s, %s, %s, %s)
-            """
+    # Dynamically build insert statement
+    columns = ', '.join(output_cols)
+    placeholders = ', '.join(['%s'] * len(output_cols))
 
-        # bulk insert CSV data to load_students
-        cursor.executemany(insert_cmd, data_for_insert)
+    insert_cmd = f"""
+        INSERT  INTO {config['output_table']}
+                    ({columns})
+                VALUES ({placeholders})
+        """
 
-    except Exception as e:
-        logging.critical(f"Error writing to {config['output_table']}: {e}")
-        raise
+    cursor.executemany(insert_cmd, data_for_insert)
 
 
 def main():
@@ -112,7 +101,7 @@ def main():
 
         # Read data from CSV file
         total_written = 0
-        for chunk in(read_in_chunks(conn)):
+        for chunk in(read_in_chunks(conn, config)):
             write_to_db_execute_many(chunk, conn, config)
             conn.commit()
             total_written += len(chunk)
@@ -121,7 +110,7 @@ def main():
 
     except Exception as e:
         # In case of error, rollback DB transaction and display error
-        logging.critical(f"DB transaction failed and rolling back: {e}")
+        logging.critical(f"Error in ETL process: {e}")
         if conn:    conn.rollback()
         raise
 
