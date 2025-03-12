@@ -26,10 +26,10 @@ class TableCopier():
         self.config = get_config()
         set_up_logging(self.config)
 
-        self.config['source_sql'] = source_sql
-        self.config['source_cols'] = source_cols
-        self.config['target_table'] = target_table
-        self.config['target_cols'] = target_cols
+        self.config["source_sql"] = source_sql
+        self.config["source_cols"] = source_cols
+        self.config["target_table"] = target_table
+        self.config["target_cols"] = target_cols
 
 
     def _read_in_chunks(self, conn, chunk_size=200):
@@ -46,7 +46,7 @@ class TableCopier():
 
             total_read += len(chunk)
 
-            df_chunk = pd.DataFrame(chunk, columns=self.config['source_cols']) 
+            df_chunk = pd.DataFrame(chunk, columns=self.config["source_cols"]) 
             yield df_chunk
 
         logging.info(f"Read {total_read} rows from main query")
@@ -55,7 +55,7 @@ class TableCopier():
     def _cleardown_target(self, conn):
         """Delete all rows from stage table about to be written."""
         cursor = conn.cursor(buffered=True)
-        target_table = self.config['target_table']
+        target_table = self.config["target_table"]
 
         cursor.execute(f"SELECT COUNT(*) FROM {target_table}")
         row_count = cursor.fetchone()[0]
@@ -68,16 +68,16 @@ class TableCopier():
         """Writes given dataframe to target table."""
         cursor = conn.cursor(buffered=True)
 
-        input_cols = self.config['source_cols']
-        target_cols = self.config['target_cols']
-        target_table = self.config['target_table']
+        input_cols = self.config["source_cols"]
+        target_cols = self.config["target_cols"]
+        target_table = self.config["target_table"]
 
         # Build list of tuples (insert values) using cols from input select
         data_for_insert = input_df[input_cols].values.tolist()
 
         # Build and execute insert statement
-        columns = ', '.join(target_cols)
-        placeholders = ', '.join(['%s'] * len(target_cols))
+        columns = ", ".join(target_cols)
+        placeholders = ", ".join(["%s"] * len(target_cols))
 
         insert_cmd = f"""
             INSERT  INTO {target_table}

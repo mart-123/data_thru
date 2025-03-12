@@ -4,3 +4,8 @@ venv_dev/
 logs/
 .env
 docker-compose.yml
+# Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
