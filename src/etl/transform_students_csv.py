@@ -54,7 +54,8 @@ def check_columns(df: pd.DataFrame):
     """
     Checks the student csv file contains all, and only, expected columns.
     """
-    expected_columns = ['stu_id','phone','email','home_address','home_postcode','home_country','term_address','term_postcode','term_country','name','dob']
+    expected_columns = ['stu_id','phone','email','home_address','home_postcode','home_country',
+                        'term_address','term_postcode','term_country','name','dob']
     missing_columns = []
 
     for col in expected_columns:
