@@ -13,24 +13,26 @@ class TableCopier():
     """
     
     def __init__(self, source_sql: str, source_cols: list[str],
-                 target_table: str, target_cols: list[str]):
+                 target_table: str, target_cols: list[str], caller_name: str = None):
         """Initialises TableCopier, fetches config (file paths, db info), sets up logging.
             Parameters:
                 source_sql : select statement to get data from source table
                 source_cols : column names (in results DF) to use as insert values
                 target_table : table referenced by insert statement
                 target_cols : target table columns to use in insert statement
+                caller_name : name of the calling script/module (for logging)
 
             Note: 'source_cols' and 'target_cols' should correspond by position and type
         """
         self.config = get_config()
         set_up_logging(self.config)
+        self.caller_name = caller_name or "UnspecifiedCaller"
 
         self.config["source_sql"] = source_sql
         self.config["source_cols"] = source_cols
         self.config["target_table"] = target_table
         self.config["target_cols"] = target_cols
-
+        
 
     def _read_in_chunks(self, conn, chunk_size=200):
         """Generator function, executes main query and returns results in chunks."""
@@ -49,7 +51,7 @@ class TableCopier():
             df_chunk = pd.DataFrame(chunk, columns=self.config["source_cols"]) 
             yield df_chunk
 
-        logging.info(f"Read {total_read} rows from main query")
+        logging.info(f"[{self.caller_name}] Read {total_read} rows from main query")
 
 
     def _cleardown_target(self, conn):
@@ -61,7 +63,7 @@ class TableCopier():
         row_count = cursor.fetchone()[0]
         cursor.execute(f"DELETE FROM {target_table}")
 
-        logging.info(f"Deleted {row_count} rows from {target_table}")
+        logging.info(f"[{self.caller_name}] Deleted {row_count} rows from {target_table}")
 
 
     def _write_to_target(self, input_df: pd.DataFrame, conn):
@@ -108,10 +110,10 @@ class TableCopier():
                 conn.commit()
                 total_written += len(chunk)
 
-            logging.info(f"Wrote {total_written} rows to SQL table")
+            logging.info(f"[{self.caller_name}] Wrote {total_written} rows to SQL table")
 
         except Exception as e:
-            logging.critical(f"Error in ETL process: {e}")
+            logging.critical(f"[{self.caller_name}] Error in ETL process: {e}")
             if conn:
                 conn.rollback()
             raise

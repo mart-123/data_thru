@@ -2,6 +2,7 @@
 Move nn056 look-up codes in nn056 stage table. 
 For additional files in 056 schema, UNION selects from respective load tables.
 """
+import os
 from src.etl.TableCopier import TableCopier
 
 
@@ -14,7 +15,8 @@ def main():
     target_table = 'stage_hesa_nn056_lookup_disability'
     target_cols = ['code', 'label', 'source_file', 'hesa_delivery']
 
-    table_copier = TableCopier(source_query, source_cols, target_table, target_cols)
+    script_name = os.path.basename(__file__)
+    table_copier = TableCopier(source_query, source_cols, target_table, target_cols, script_name)
     table_copier.transfer_data()
 
 

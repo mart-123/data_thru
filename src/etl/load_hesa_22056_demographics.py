@@ -1,3 +1,4 @@
+import os
 from src.etl.CsvTableCopier import CsvTableCopier
 
 def main():
@@ -17,7 +18,8 @@ def main():
         "ethnicity_grp3": "ethnicity_grp3"
     }
 
-    table_copier = CsvTableCopier("transformed", source_file, target_table, column_mappings)
+    script_name = os.path.basename(__file__)
+    table_copier = CsvTableCopier("transformed", source_file, target_table, column_mappings, script_name)
     table_copier.transfer_data()
 
 

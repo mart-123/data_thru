@@ -3,6 +3,7 @@ Get student/program links from load table, store in nn056 stage table.
 For additional files in 056 schema, UNION selects from respective load tables.
 """
 from src.etl.TableCopier import TableCopier
+import os
 
 def main():
     source_query = """SELECT t1.student_guid, t1.program_guid, t1.enrol_date,
@@ -12,7 +13,8 @@ def main():
     target_table = 'stage_hesa_nn056_student_programs'
     target_cols = ['student_guid', 'program_guid', 'enrol_date', 'fees_paid', 'source_file', 'hesa_delivery']
 
-    table_copier = TableCopier(source_query, source_cols, target_table, target_cols)
+    script_name = os.path.basename(__file__)
+    table_copier = TableCopier(source_query, source_cols, target_table, target_cols, script_name)
     table_copier.transfer_data()
 
 

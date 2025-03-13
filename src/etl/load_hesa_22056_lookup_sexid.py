@@ -1,3 +1,4 @@
+import os
 from src.etl.CsvTableCopier import CsvTableCopier
 
 def main():
@@ -6,7 +7,8 @@ def main():
     target_table = "load_hesa_22056_lookup_sexid"
     column_mappings = {"Code": "code", "Label": "label"}
 
-    table_copier = CsvTableCopier("lookup", source_file, target_table, column_mappings)
+    script_name = os.path.basename(__file__)
+    table_copier = CsvTableCopier("lookup", source_file, target_table, column_mappings, script_name)
     table_copier.transfer_data()
 
 

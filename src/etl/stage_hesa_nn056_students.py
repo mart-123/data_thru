@@ -3,6 +3,7 @@ Merge all 22056/23056/etc student and demographic load tables into one nn056 sta
 For additional files in 056 schema, UNION selects from respective load tables.
 """
 from src.etl.TableCopier import TableCopier
+import os
 
 def main():
     source_query =  """
@@ -27,7 +28,8 @@ def main():
                     'source_file', 'hesa_delivery', 'ethnicity', 'gender', 'religion', 'sexid', 'sexort', 'trans',
                     'ethnicity_grp1', 'ethnicity_grp2', 'ethnicity_grp3']
 
-    table_copier = TableCopier(source_query, source_cols, target_table, target_cols)
+    script_name = os.path.basename(__file__)
+    table_copier = TableCopier(source_query, source_cols, target_table, target_cols, script_name)
     table_copier.transfer_data()
 
 

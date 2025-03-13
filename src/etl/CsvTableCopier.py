@@ -4,14 +4,17 @@ import logging
 from src.utils.etl_utils import get_config, set_up_logging, connect_to_db
 
 class CsvTableCopier():
-    def __init__(self, source_type: str, source_file: str, target_table: str, column_mappings: dict):
+    def __init__(self, source_type: str, source_file: str, target_table: str, column_mappings: dict, caller_name: str = None):
         """Constructor for CsvTableCopier object. Parameters:
+            - source_type: Type of source ('lookup' or 'transformed')
             - source_file : filename (recorded in 'source' column of table)
             - target_table : table to which data is written
-            - column mappings : dictionary of column name pairs (csv col: table col)
+            - column_mappings : dictionary of column name pairs (csv col: table col)
+            - caller_name : name of the calling script/module (for logging)
         """
         self.config = get_config()
         set_up_logging(self.config)
+        self.caller_name = caller_name or "UnspecifiedCaller"
 
         self.config["source_file"] = source_file
         self.config["target_table"] = target_table
@@ -36,10 +39,10 @@ class CsvTableCopier():
                 total_read += len(chunk)
                 yield chunk
 
-            logging.info(f"Read {total_read} rows from {csv_path}")
+            logging.info(f"[{self.caller_name}] Read {total_read} rows from {csv_path}")
 
         except Exception as e:
-            logging.info(f"Error loading CSV file into DataFrame: {e}")
+            logging.info(f"[{self.caller_name}] Error loading CSV file into DataFrame: {e}")
             raise
 
 
@@ -56,10 +59,10 @@ class CsvTableCopier():
             # Delete all rows from the table (commit logic is in 'main')
             cursor.execute(f"DELETE FROM {self.config['target_table']}")
 
-            logging.info(f"Deleted {row_count} rows from {self.config['target_table']}")
+            logging.info(f"[{self.caller_name}] Deleted {row_count} rows from {self.config['target_table']}")
 
         except Exception as e:
-            logging.critical(f"Error clearing down table {self.config['target_table']}: {e}")
+            logging.critical(f"[{self.caller_name}] Error clearing down table {self.config['target_table']}: {e}")
             raise
 
 
@@ -93,7 +96,7 @@ class CsvTableCopier():
             cursor.executemany(insert_cmd, data_for_insert)
 
         except Exception as e:
-            logging.critical(f"Error loading CSV data: {e}")
+            logging.critical(f"[{self.caller_name}] Error loading CSV data: {e}")
             raise
 
 
@@ -118,11 +121,11 @@ class CsvTableCopier():
                 conn.commit()
                 total_written += len(chunk)
 
-            logging.info(f"Wrote {total_written} rows to table {self.config['target_table']}")
+            logging.info(f"[{self.caller_name}] Wrote {total_written} rows to table {self.config['target_table']}")
 
         except Exception as e:
             # In case of error, rollback DB transaction and display error
-            logging.critical(f"Error in ETL process: {e}")
+            logging.critical(f"[{self.caller_name}] Error in ETL process: {e}")
             if conn:    conn.rollback()
             raise
 
