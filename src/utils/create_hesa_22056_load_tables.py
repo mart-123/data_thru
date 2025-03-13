@@ -8,7 +8,7 @@ load tables will need to be added to merge logic for loading the nn056 stage tab
 import mysql.connector
 import traceback
 import mysql.connector.cursor
-from utils.etl_utils import get_config, set_up_logging, connect_to_db
+from src.utils.etl_utils import get_config, set_up_logging, connect_to_db
 
 def init():
     config = get_config()
