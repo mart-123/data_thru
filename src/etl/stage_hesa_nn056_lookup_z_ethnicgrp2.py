@@ -1,7 +1,8 @@
 """
-Load nn056 look-up codes in nn056 stage table. 
+Move nn056 look-up codes in nn056 stage table. 
+For additional files in 056 schema, UNION selects from respective load tables.
 """
-from etl.TableCopier import TableCopier
+from src.etl.TableCopier import TableCopier
 
 
 def main():

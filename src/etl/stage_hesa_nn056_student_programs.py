@@ -1,7 +1,8 @@
 """
-Get student/program links from load table, store in nn056 stage table. 
+Get student/program links from load table, store in nn056 stage table.
+For additional files in 056 schema, UNION selects from respective load tables.
 """
-from etl.TableCopier import TableCopier
+from src.etl.TableCopier import TableCopier
 
 def main():
     source_query = """SELECT t1.student_guid, t1.program_guid, t1.enrol_date,

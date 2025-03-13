@@ -4,7 +4,7 @@ import os
 import re
 from multiprocessing import Pool
 import time
-from utils.etl_utils import get_config, set_up_logging, is_valid_date
+from src.utils.etl_utils import get_config, set_up_logging, is_valid_date
 
 
 def init():
@@ -80,6 +80,7 @@ def cleanse_data(df: pd.DataFrame, config):
     # Convert email lowercase
     df['email'] = df['email'].str.lower().str.strip()
 
+    # And check for missing address details (creates boolean )
     home_addr_incomplete = (
         (df['home_address'] == '') | (df['home_postcode'] == '') | (df['home_country'] == '')
     )

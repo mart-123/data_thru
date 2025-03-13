@@ -5,7 +5,7 @@ import re
 from multiprocessing import Pool
 import time
 import traceback
-from utils.etl_utils import get_config, set_up_logging
+from src.utils.etl_utils import get_config, set_up_logging
 
 
 def init():
@@ -67,8 +67,9 @@ def cleanse_data(df: pd.DataFrame, config):
     columns_to_fill = ['stu_id','ethnicity','gender','religion','sexid','sexort','trans','ethnicity_grp1','ethnicity_grp2','ethnicity_grp3']
     df[columns_to_fill] = df[columns_to_fill].fillna('')
 
-    cols_missing = ((df['stu_id'] == '') | (df['ethnicity'] == '') | (df['gender'] == '') | (df['sexid'] == '') | (df['sexort'] == '') |
-                    (df['trans'] == '') | (df['ethnicity_grp1'] == '') | (df['ethnicity_grp2'] == '') | (df['ethnicity_grp3'] == ''))
+    cols_missing = ((df['stu_id'] == '') | (df['ethnicity'] == '') | (df['gender'] == '') | (df['religion'] == '') |
+                    (df['sexid'] == '') | (df['sexort'] == '') | (df['trans'] == '') |
+                    (df['ethnicity_grp1'] == '') | (df['ethnicity_grp2'] == '') | (df['ethnicity_grp3'] == ''))
 
     # Combine error series and write bad rows to separate csv file
     bad_indexes = cols_missing

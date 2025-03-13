@@ -1,4 +1,4 @@
-from etl.CsvTableCopier import CsvTableCopier
+from src.etl.CsvTableCopier import CsvTableCopier
 
 def main():
     """Set generic config and process-specific additional (filenames, etc)"""

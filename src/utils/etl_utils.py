@@ -30,18 +30,20 @@ def get_config(env="dev"):
         - add further config[] items for process-specific filepaths, etc
     """
     try:
-        # Load project environment variables from .env file
-        # (db connection config and base dir/config file paths)
+        # Get basic config from .env file:
+        #   - db connection
+        #   - project base directory
+        #   - full application config file path
         dotenv_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env')
         load_dotenv(dotenv_file)
         base_dir = os.getenv("BASE_DIR")
         config_file_path = os.getenv("CONFIG_FILE")
 
-        # Get config file (mainly directory paths)
+        # Get application config (relative directory paths)
         with open(config_file_path, "r") as config_file:
             config = json.load(config_file)
 
-        # Build various directory/file paths from env vars and config values
+        # Build full working directory paths from base dir and relative paths
         config["base_dir"] = base_dir
         config["log_dir"] = os.path.join(base_dir, config["log_dir"], env)
         config["data_dir"] = os.path.join(base_dir, config["data_dir"])
@@ -55,7 +57,7 @@ def get_config(env="dev"):
         config["env"] = env
 
         # Get DB connection config
-#        config["db_host_ip"] = get_windows_host_ip() # only for windows-hosted MySQL
+#        config["db_host_ip"] = get_windows_host_ip() # only for windows-hosted MySQL connecting from WSL2
         config["db_host_ip"] = "localhost"
         config["db_port"] = os.getenv("DB_PORT")
         config["db_user"] = os.getenv("DB_USER")
@@ -77,8 +79,9 @@ def set_up_logging(config):
     try:
         os.makedirs(config["log_dir"], exist_ok=True)
 
+# basic           "%(asctime)s - %(levelname)s - %(pathname)s - %(message)s"
         log_format = logging.Formatter(
-            "%(asctime)s - %(levelname)s - %(filename)s - %(message)s"
+            "%(asctime)s - %(levelname)s - %(message)s"
         )
 
         info_handler = logging.FileHandler(config["info_log_file_path"], mode="a")
