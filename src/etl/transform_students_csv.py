@@ -80,7 +80,7 @@ def cleanse_data(df: pd.DataFrame, config):
     # Convert email lowercase
     df['email'] = df['email'].str.lower().str.strip()
 
-    # And check for missing address details (creates boolean )
+    # And check for missing address details
     home_addr_incomplete = (
         (df['home_address'] == '') | (df['home_postcode'] == '') | (df['home_country'] == '')
     )
@@ -102,6 +102,28 @@ def cleanse_data(df: pd.DataFrame, config):
     # Combine error series and write bad rows to separate csv file
     bad_indexes = home_addr_incomplete | term_addr_incomplete | other_cols_missing | bad_emails | bad_format_dobs | bad_date_dobs
     bad_rows = df[bad_indexes]
+
+    # Add 'failure reasons' column to bad data dataframe
+    bad_rows['failure_reasons'] = ''
+    if any(home_addr_incomplete):
+        bad_rows.loc[home_addr_incomplete, 'failure_reasons'] += "Missing home addr data; "
+    
+    if any(term_addr_incomplete):
+        bad_rows.loc[term_addr_incomplete, 'failure_reasons'] += "Missing term addr data; "
+    
+    if any(other_cols_missing):
+        bad_rows.loc[other_cols_missing, 'failure_reasons'] += "Missing id/phone/email/name/dob; "
+    
+    if any(bad_emails):
+        bad_rows.loc[bad_emails, 'failure_reasons'] += "Badly formatted email address; "
+    
+    if any(bad_date_dobs):
+        bad_rows.loc[bad_date_dobs, 'failure_reasons'] += "Bad dob; "
+
+    bad_rows['failure_reasons'] = bad_rows['failure_reasons'].str.rstrip('; ')
+
+    # Write data quality issues to 'bad data' csv file
+    # (write_header bool ensures header row only for first chunk)
     write_header = not(os.path.exists(config['bad_data_path']))
     bad_rows.to_csv(config['bad_data_path'], mode='a', header=write_header, index=False)
 
