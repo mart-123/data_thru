@@ -105,20 +105,24 @@ def cleanse_data(df: pd.DataFrame, config):
 
     # Add 'failure reasons' column to bad data dataframe
     bad_rows['failure_reasons'] = ''
+
     if any(home_addr_incomplete):
-        bad_rows.loc[home_addr_incomplete, 'failure_reasons'] += "Missing home addr data; "
+        bad_rows.loc[home_addr_incomplete, 'failure_reasons'] += "missing home addr data; "
     
     if any(term_addr_incomplete):
-        bad_rows.loc[term_addr_incomplete, 'failure_reasons'] += "Missing term addr data; "
+        bad_rows.loc[term_addr_incomplete, 'failure_reasons'] += "missing term addr data; "
     
     if any(other_cols_missing):
-        bad_rows.loc[other_cols_missing, 'failure_reasons'] += "Missing id/phone/email/name/dob; "
+        bad_rows.loc[other_cols_missing, 'failure_reasons'] += "missing id/phone/email/name/dob; "
     
     if any(bad_emails):
-        bad_rows.loc[bad_emails, 'failure_reasons'] += "Badly formatted email address; "
+        bad_rows.loc[bad_emails, 'failure_reasons'] += "badly formatted email address; "
     
+    if any(bad_format_dobs):
+        bad_rows.loc[bad_format_dobs, 'failure_reasons'] += "bad format dob; "
+
     if any(bad_date_dobs):
-        bad_rows.loc[bad_date_dobs, 'failure_reasons'] += "Bad dob; "
+        bad_rows.loc[bad_date_dobs, 'failure_reasons'] += "invalid dob; "
 
     bad_rows['failure_reasons'] = bad_rows['failure_reasons'].str.rstrip('; ')
 
