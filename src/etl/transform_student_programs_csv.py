@@ -1,10 +1,10 @@
-import pandas as pd
-import logging
 import os
 import re
-from multiprocessing import Pool
 import time
 import traceback
+import logging
+import pandas as pd
+from multiprocessing import Pool
 from src.utils.etl_utils import get_config, set_up_logging, is_valid_date
 
 
@@ -75,28 +75,43 @@ def cleanse_data(df: pd.DataFrame, config):
     Checks for missing/invalid values, writing bad rows to 'bad_data' CSV file.
     """
     # Fill NA columns with empty string (simplifies subsequent validation logic)
-    columns_to_fill = ['stu_id', 'email', 'program_id', 'program_code', 'program_name','enrol_date','fees_paid']
+    columns_to_fill = ['stu_id', 'program_id', 'program_code', 'program_name','enrol_date','fees_paid']
     df[columns_to_fill] = df[columns_to_fill].fillna('')
 
-    # Convert email and fees_paid to lowercase
-    df['email'] = df['email'].str.lower().str.strip()   # email to lowercase, remove spaces
-    df['fees_paid'] = df['fees_paid'].str.lower().str.strip()
-
     # Check for mandatory columns
-    other_cols_missing = ((df['stu_id'] == '') | (df['email'] == '') | (df['enrol_date'] == '') | (df['fees_paid'] == '') |
-                        (df['program_id'] == '') | (df['program_code'] == '') | (df['program_name'] == ''))
+    mandatory_cols_missing = ((df['stu_id'] == '') | (df['enrol_date'] == '') | (df['fees_paid'] == '') |
+                          (df['program_id'] == '') | (df['program_code'] == '') | (df['program_name'] == ''))
 
-    # Validate email format (contains '@')
-    bad_emails = ~(df['email'].str.contains('@', na=False))
+    # Ensure valid 'fees paid' flag (y/n)
+    bad_fees_flag = ~(df['fees_paid'].isin(['y','Y','n','N']))
 
     # Check enrol date for yyyy-mm-dd and also that it's an actual date
     date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
     bad_format_enrol_dates = ~(df['enrol_date'].apply(lambda x: bool(date_pattern.match(x)) if x else False))
     bad_enrol_dates = ~(df['enrol_date'].apply(lambda x: is_valid_date(x) if x else False))
 
-    # Combine error series and write bad rows to separate csv file
-    bad_indexes = other_cols_missing | bad_emails | bad_format_enrol_dates | bad_enrol_dates
-    bad_rows = df[bad_indexes]
+    # Combine error series
+    bad_indexes = (mandatory_cols_missing | bad_format_enrol_dates | bad_enrol_dates | bad_fees_flag)
+    bad_rows = df[bad_indexes].copy()
+
+    # Add 'failure reasons' column to bad data dataframe
+    bad_rows['failure_reasons'] = ''
+
+    if any(mandatory_cols_missing):
+        bad_rows.loc[mandatory_cols_missing, 'failure_reasons'] += "mandatory data missing; "
+    
+    if any(bad_format_enrol_dates):
+        bad_rows.loc[bad_format_enrol_dates, 'failure_reasons'] += "bad format enrol date; "
+
+    if any(bad_enrol_dates):
+        bad_rows.loc[bad_enrol_dates, 'failure_reasons'] += "invalid enrol date; "
+
+    if any(bad_fees_flag):
+        bad_rows.loc[bad_fees_flag, 'failure_reasons'] += "bad fees flag; "
+
+    bad_rows['failure_reasons'] = bad_rows['failure_reasons'].str.rstrip('; ')
+
+    # write rejected rows to bad data csv
     write_header = not(os.path.exists(config['bad_data_path']))
     bad_rows.to_csv(config['bad_data_path'], mode='a', header=write_header, index=False)
 
@@ -105,23 +120,16 @@ def cleanse_data(df: pd.DataFrame, config):
     return good_rows
 
 
-def extract_names(row):
-    """ Helper function to split name into first name(s) and last name"""
-    parts = row['name'].split(' ')
-    if len(parts) > 1:
-        return pd.Series({'first_names': ' '.join(parts[:-1]), 'last_name': parts[-1]})
-    else:
-        return pd.Series({'first_names': parts[0], 'last_name': ''})
-
-
 def transform_batch(batch: pd.DataFrame):
     """
-    Transforms rows that have passed validation:
-        - stu_id : rename to student_guid    
-
-    Call on entire file, each chunk, or during parallelisation.
+    Transforms rows that passed validation:
+        stu_id : rename to student_guid
+        fees_paid : convert to lowercase
     """
     df = batch.copy()
+    # Convert fees_paid to lowercase
+    df['fees_paid'] = df['fees_paid'].str.lower().str.strip()
+
     df.rename(columns={'stu_id': 'student_guid'}, inplace=True)
     df.rename(columns={'program_id': 'program_guid'}, inplace=True)
 

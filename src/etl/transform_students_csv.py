@@ -77,9 +77,6 @@ def cleanse_data(df: pd.DataFrame, config):
     columns_to_fill = ['stu_id', 'phone', 'email', 'home_address', 'home_postcode', 'home_country', 'term_address', 'term_postcode', 'term_country', 'name', 'dob']
     df[columns_to_fill] = df[columns_to_fill].fillna('')
 
-    # Convert email lowercase
-    df['email'] = df['email'].str.lower().str.strip()
-
     # And check for missing address details
     home_addr_incomplete = (
         (df['home_address'] == '') | (df['home_postcode'] == '') | (df['home_country'] == '')
@@ -101,7 +98,7 @@ def cleanse_data(df: pd.DataFrame, config):
 
     # Combine error series and write bad rows to separate csv file
     bad_indexes = home_addr_incomplete | term_addr_incomplete | other_cols_missing | bad_emails | bad_format_dobs | bad_date_dobs
-    bad_rows = df[bad_indexes]
+    bad_rows = df[bad_indexes].copy()
 
     # Add 'failure reasons' column to bad data dataframe
     bad_rows['failure_reasons'] = ''
@@ -155,6 +152,9 @@ def transform_batch(batch: pd.DataFrame):
     Call on entire file, each chunk, or during parallelisation.
     """
     df = batch.copy()
+
+    # simple transforms (email lowercase, remove brackets from phone, rename stu_id)
+    df['email'] = df['email'].str.lower().str.strip()
     df['phone'] = df['phone'].str.replace('(', '').str.replace(')', '')
     df.rename(columns={'stu_id': 'student_guid'}, inplace=True)
 
