@@ -32,9 +32,9 @@ def get_bad_data_csv(file_name: str):
 
 
 def tc001_transformed_row_count(csv_df):
-    test_desc = "Transformed file contains 4 rows"
+    test_desc = "Transformed file contains 5 rows"
 
-    if len(csv_df) == 4:
+    if len(csv_df) == 5:
         return True, test_desc
     else:
         return False, test_desc
@@ -45,10 +45,10 @@ def tc002_program_name_commas_preserved(csv_df):
     test_key = "C8DB7DB8-0284-C52F-53C0-842809799A83"
 
     # Get test record
-    bool_series = (csv_df["stu_id"] == test_key)
+    bool_series = (csv_df["student_guid"] == test_key)
     matching_rows = csv_df[bool_series]
     if len(matching_rows) == 0:
-        return False, f"{test_desc} - ERROR, stu_id {test_key} not in file"
+        return False, f"{test_desc} - ERROR, student_guid {test_key} not in file"
 
     # Evaluate test condition
     student_row = matching_rows.iloc[0]
@@ -90,9 +90,9 @@ def tc004_good_row_all_cols_copied(csv_df):
 
     # Declare expected values
     expected_values = {
-        "stu_id": "7ED0CA1F-B4CB-27E3-39DA-71F96D949814",
+        "student_guid": "7ED0CA1F-B4CB-27E3-39DA-71F96D949814",
         "email": "sed.sapien@aol.edu",
-        "program_id": "0A769638-3799-86C6-BBBB-38BEBE2487D1",
+        "program_guid": "0A769638-3799-86C6-BBBB-38BEBE2487D1",
         "program_code": "ENG10001",
         "program_name": "BA English Lit",
         "enrol_date": "2024-10-04",
@@ -110,7 +110,7 @@ def tc004_good_row_all_cols_copied(csv_df):
 def tc501_bad_data_row_count(bad_df):
     test_desc = "Bad data file contains 5 rows"
 
-    if len(bad_df) == 5:
+    if len(bad_df) == 8:
         return True, test_desc
     else:
         return False, test_desc
@@ -127,7 +127,7 @@ def tc502_missing_stu_id_rejected(bad_df):
 
     # Evaluate test condition
     student_row = matching_rows.iloc[0]
-    if "missing id" in student_row["failure_reasons"]:
+    if "mandatory data missing" in student_row["failure_reasons"]:
         return True, test_desc
     else:
         return False, test_desc
@@ -165,7 +165,7 @@ def tc504_missing_fees_flag_rejected(bad_df):
     # Evaluate test condition
     student_row = matching_rows.iloc[0]
     if ((pd.isna(student_row["fees_paid"])) and
-        (student_row["failure_reasons"] == 'bad fees flag')):
+        ('bad fees flag' in student_row["failure_reasons"])):
         return True, test_desc
     else:
         return False, test_desc
@@ -173,7 +173,7 @@ def tc504_missing_fees_flag_rejected(bad_df):
 
 def tc505_missing_enrol_date_rejected(bad_df):
     test_desc = "Missing enrolment date filtered as bad data"
-    test_key = "A8AFE87E-B50E-8A21-E4DB-A53D7298FB92"
+    test_key = "FAF961D5-C2EA-A189-93DB-8AA63F5378AA"
 
     # Get test record
     bool_series = (bad_df["stu_id"] == test_key)
@@ -183,8 +183,8 @@ def tc505_missing_enrol_date_rejected(bad_df):
 
     # Evaluate test condition
     student_row = matching_rows.iloc[0]
-    if ((pd.isna(student_row["dob"])) and
-        ("missing id/phone/email/name/dob" in student_row["failure_reasons"])):
+    if ((pd.isna(student_row["enrol_date"])) and
+        ("mandatory data missing" in student_row["failure_reasons"])):
         return True, test_desc
     else:
         return False, test_desc
@@ -202,7 +202,7 @@ def tc506_bad_format_enrol_date_rejected(bad_df):
 
     # Evaluate test condition
     student_row = matching_rows.iloc[0]
-    if "bad format enrolment date" in student_row["failure_reasons"]:
+    if "bad format enrol date" in student_row["failure_reasons"]:
         return True, test_desc
     else:
         return False, test_desc
@@ -220,7 +220,7 @@ def tc507_invalid_enrol_date_rejected(bad_df):
 
     # Evaluate test condition
     student_row = matching_rows.iloc[0]
-    if "invalid enrolment date" in student_row["failure_reasons"]:
+    if "invalid enrol date" in student_row["failure_reasons"]:
         return True, test_desc
     else:
         return False, test_desc

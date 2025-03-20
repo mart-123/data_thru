@@ -128,7 +128,7 @@ def transform_batch(batch: pd.DataFrame):
     """
     df = batch.copy()
     # Convert fees_paid to lowercase
-    df['fees_paid'] = df['fees_paid'].str.lower().str.strip()
+    df['fees_paid'] = df['fees_paid'].str.upper().str.strip()
 
     df.rename(columns={'stu_id': 'student_guid'}, inplace=True)
     df.rename(columns={'program_id': 'program_guid'}, inplace=True)
