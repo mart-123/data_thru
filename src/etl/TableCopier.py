@@ -4,12 +4,9 @@ from src.utils.etl_utils import get_config, set_up_logging, connect_to_db
 
 class TableCopier():
     """
-    Executes provided SQL query and writes to results target table.
+    Helper class to bulk copy from one table to another, using given SQL query as source.
 
-    Designed to be subclassed. Call 'set_source' and 'set_target'
-    methods in subclass constructor to configure source and target.
-
-    Manages database connection and logging.
+    Usage: instantiate and then call transfer_data.
     """
     
     def __init__(self, source_sql: str, source_cols: list[str],

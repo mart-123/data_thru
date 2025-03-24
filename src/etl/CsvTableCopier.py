@@ -4,6 +4,11 @@ import logging
 from src.utils.etl_utils import get_config, set_up_logging, connect_to_db
 
 class CsvTableCopier():
+    """
+    Helper class to bulk copy from a CSV file to a SQL table.
+
+    Usage: instantiate and then call transfer_data.
+    """
     def __init__(self, source_type: str, source_file: str, target_table: str, column_mappings: dict, caller_name: str = None):
         """Constructor for CsvTableCopier object. Parameters:
             - source_type: Type of source ('lookup' or 'transformed')
