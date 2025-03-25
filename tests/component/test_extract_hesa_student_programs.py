@@ -8,7 +8,7 @@ test_results = []
 
 
 def run_etl_process(script_name: str):
-    result = subprocess.run(["python3", f"{config['etl_script_dir']}/{script_name}"],
+    result = subprocess.run(["python3", f"{config['extract_script_dir']}/{script_name}"],
                         capture_output=True, text=True)
 
     if result.returncode != 0:
@@ -272,7 +272,7 @@ def print_results():
 
 
 def main():
-    run_etl_process("transform_student_programs_csv.py")
+    run_etl_process("extract_hesa_student_programs.py")
     transformed_csv = get_transformed_csv("student_programs_transformed.csv")
     bad_data_csv = get_bad_data_csv("student_programs_bad_data.csv")
     run_transformed_file_tests(transformed_csv)

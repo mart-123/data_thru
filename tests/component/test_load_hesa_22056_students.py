@@ -9,7 +9,7 @@ def run_etl_script():
      # Run ETL script whose output is to be tested.
     etl_script_name = "load_hesa_22056_students.py"
     
-    result = subprocess.run(["python3", f"{config['etl_script_dir']}/{etl_script_name}"],
+    result = subprocess.run(["python3", f"{config['load_script_dir']}/{etl_script_name}"],
                     capture_output=True, text=True)
 
     if result.returncode != 0:

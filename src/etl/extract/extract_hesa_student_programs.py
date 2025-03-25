@@ -11,7 +11,8 @@ from src.etl.core.etl_utils import get_config, set_up_logging, is_valid_date
 def init():
     """Set generic config and process-specific additional (filenames, etc)"""
     config = get_config()
-    set_up_logging(config)
+    script_name = os.path.basename(__file__)
+    set_up_logging(config, script_name)
 
     # Process-specific config (typically filenames)
     config['input_path'] = os.path.join(config['extracts_dir'], 'student_programs_extract.csv')

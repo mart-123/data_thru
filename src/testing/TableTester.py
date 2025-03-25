@@ -26,11 +26,15 @@ class TableTester():
                 caller_name: Name of calling script/module for logging, defaults to 'UnspecifiedCaller'.
         """
         self.config = get_config()
-        set_up_logging(self.config)
+
+        # Set up logging
+        script_name = caller_name or __class__.__name__
+        set_up_logging(self.config, script_name)
+
+        # Initialise test results collection
         self.test_results = []
 
         # Store parameters in instance variables
-        self.caller_name = caller_name or "UnspecifiedCaller"
         self.source_table = source_table
         self.source_csv = source_csv
         self.target_table = target_table
@@ -73,13 +77,13 @@ class TableTester():
             cursor.execute(query_sql)
             results = cursor.fetchall()
         except Exception as e:
-            logging.info(f"[{self.caller_name}] Error running query: {e}")
+            logging.info(f"Error running query: {e}")
             raise
 
 
         # Log results
         total_read = len(results)
-        logging.info(f"[{self.caller_name}] Read {total_read} rows from {table_name}")
+        logging.info(f"Read {total_read} rows from {table_name}")
 
         df = pd.DataFrame(results, columns=column_names) 
 
@@ -116,7 +120,7 @@ class TableTester():
         """
         df = pd.read_csv(csv_path, dtype=str)
         total_read = len(df)
-        logging.info(f"[{self.caller_name}] Read {total_read} rows from {self.source_csv_path}")
+        logging.info(f"Read {total_read} rows from {self.source_csv_path}")
         return df
 
 
@@ -261,7 +265,7 @@ class TableTester():
         for test in tests_passed:
             print(f"    {test[0]} ({test[2]}) : PASSED")
 
-        logging.info(f"[{self.caller_name}] tests passed: {len(tests_passed)} failed: {len(tests_failed)}")
+        logging.info(f"tests passed: {len(tests_passed)} failed: {len(tests_failed)}")
 
 
     def run_tests(self):

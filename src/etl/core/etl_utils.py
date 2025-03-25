@@ -30,44 +30,51 @@ def get_config(env="dev"):
         - add further config[] items for process-specific filepaths, etc
     """
     try:
-        # Get basic config from .env file:
-        #   - db connection
-        #   - project base directory
-        #   - full application config file path
+        # 1. Load basic environment variables (main config filename)
         dotenv_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env')
         load_dotenv(dotenv_file)
         base_dir = os.getenv("BASE_DIR")
         config_file_path = os.getenv("CONFIG_FILE")
 
-        # Get application config (relative directory paths)
+        # 2. Load main config file (contains nested, relative directories)
         with open(config_file_path, "r") as config_file:
-            config = json.load(config_file)
+            json_config = json.load(config_file)
 
-        # Build full working directory paths from base dir and relative paths
-        config["base_dir"] = base_dir
-        config["log_dir"] = os.path.join(base_dir, config["log_dir"], env)
-        config["data_dir"] = os.path.join(base_dir, config["data_dir"])
-        config["extracts_dir"] = os.path.join(base_dir, config["extracts_dir"])
-        config["bad_data_dir"] = os.path.join(base_dir, config["bad_data_dir"])
-        config["transformed_dir"] = os.path.join(base_dir, config["transformed_dir"])
-        config["lookups_dir"] = os.path.join(base_dir, config["lookups_dir"])
-        config["info_log_file_path"] = os.path.join(config["log_dir"], "etl_info.log")
-        config["error_log_file_path"] = os.path.join(config["log_dir"], "etl_error.log")
-        config["etl_script_dir"] = os.path.join(base_dir, config["etl_script_dir"])
-        config["load_script_dir"] = os.path.join(base_dir, config["load_script_dir"])
-        config["stage_script_dir"] = os.path.join(base_dir, config["stage_script_dir"])
-        config["dim_script_dir"] = os.path.join(base_dir, config["dim_script_dir"])
-        config["fact_script_dir"] = os.path.join(base_dir, config["fact_script_dir"])
-        config["view_script_dir"] = os.path.join(base_dir, config["view_script_dir"])
-        config["env"] = env
+        # 3. Create flat config dictionary (to contain fully qualified directories)
+        config = {}
 
-        # Get DB connection config
+        # 4. Get base directories (absolute paths)
+        logs_path = os.path.join(base_dir, json_config["paths"]["base"]["logs"])
+        data_path = os.path.join(base_dir, json_config["paths"]["base"]["data"])
+        scripts_path = os.path.join(base_dir, json_config["paths"]["base"]["scripts"])
+
+        # 5. Declare environment-specific log files
+        config["log_dir"] = os.path.join(logs_path, env)
+        config["info_log_file"] = os.path.join(config["log_dir"], "etl_info.log")
+        config["error_log_file"] = os.path.join(config["log_dir"], "etl_error.log")
+
+        # 6. Declare data directories
+        config["extracts_dir"] = os.path.join(data_path, json_config["paths"]["data"]["extracts"])
+        config["bad_data_dir"] = os.path.join(data_path, json_config["paths"]["data"]["bad_data"])
+        config["transformed_dir"] = os.path.join(data_path, json_config["paths"]["data"]["transformed"])
+        config["lookups_dir"] = os.path.join(data_path, json_config["paths"]["data"]["lookups"])
+
+        # 7. Declare script directories
+        config["extract_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["extract"])
+        config["load_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["load"])
+        config["stage_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["stage"])
+        config["dim_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["dim"])
+        config["fact_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["fact"])
+        config["view_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["view"])
+
+        # Get database settings and store environment label
 #        config["db_host_ip"] = get_windows_host_ip() # only for windows-hosted MySQL connecting from WSL2
         config["db_host_ip"] = "localhost"
         config["db_port"] = os.getenv("DB_PORT")
         config["db_user"] = os.getenv("DB_USER")
         config["db_pwd"] = os.getenv("DB_PWD")
         config["db_name"] = os.getenv("DB_NAME")
+        config["env"] = env
         
         return config
 
@@ -76,7 +83,7 @@ def get_config(env="dev"):
         raise
 
 
-def set_up_logging(config):
+def set_up_logging(config, script_name=None):
     """
     Sets up logging (two logs: a 'main' and a 'warnings and upwards').
     Helper function for get_config().
@@ -84,21 +91,28 @@ def set_up_logging(config):
     try:
         os.makedirs(config["log_dir"], exist_ok=True)
 
-# basic           "%(asctime)s - %(levelname)s - %(pathname)s - %(message)s"
-        log_format = logging.Formatter(
-            "%(asctime)s - %(levelname)s - %(message)s"
-        )
+        # basic: "%(asctime)s - %(levelname)s - %(pathname)s - %(message)s"
+        if script_name:
+            log_format = logging.Formatter(f"%(asctime)s - %(levelname)s - {script_name} - %(message)s")
+        else:
+            log_format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
-        info_handler = logging.FileHandler(config["info_log_file_path"], mode="a")
+        info_handler = logging.FileHandler(config["info_log_file"], mode="a")
         info_handler.setLevel(logging.INFO)
         info_handler.setFormatter(log_format)
 
-        error_handler = logging.FileHandler(config["error_log_file_path"], mode="a")
+        error_handler = logging.FileHandler(config["error_log_file"], mode="a")
         error_handler.setLevel(logging.WARNING)
         error_handler.setFormatter(log_format)
 
+        # Get root logger and clear any existing handlers
         root_logger = logging.getLogger()
-        root_logger.setLevel(logging.INFO)  # threshold for writing to log
+        if root_logger.handlers:
+            for handler in root_logger.handlers:
+                root_logger.removeHandler(handler)
+
+        # Set level and add handlers
+        root_logger.setLevel(logging.INFO)  # threshold for logging
         root_logger.addHandler(info_handler)
         root_logger.addHandler(error_handler)
 

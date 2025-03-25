@@ -6,12 +6,12 @@ from datetime import timedelta
 from src.etl.core.etl_utils import get_config
 
 @task
-def run_transform_scripts(config):
-    print("Running transforms...")
+def run_extract_scripts(config):
+    print("Running extracts...")
     transform_scripts = [
-        "transform_students_csv.py",
-        "transform_demographics_csv.py",
-        "transform_student_programs_csv.py"
+        "extract_hesa_students.py",
+        "extract_hesa_demographics.py",
+        "extract_hesa_student_programs.py"
     ]
 
     all_success = True
@@ -24,7 +24,7 @@ def run_transform_scripts(config):
             all_success = False
 
     if all_success:
-        print("Transforms completed successfully")
+        print("Extracts completed successfully")
     else:
         print("Some transforms failed")
 
@@ -89,7 +89,7 @@ def run_stage_scripts(config):
 
     success = True
     for script in stage_scripts:
-        result = subprocess.run(["python3", f"{config['etl_script_dir']}/{script}"],
+        result = subprocess.run(["python3", f"{config['stage_script_dir']}/{script}"],
                                 capture_output=True, text=True)
 
         if result.returncode != 0:
@@ -117,7 +117,7 @@ def etl_flow():
     load_success = False
     stage_success = False
 
-    transform_success = run_transform_scripts(config)
+    transform_success = run_extract_scripts(config)
     if transform_success:
         load_success = run_load_scripts(config, wait_for=[transform_success])
         if load_success:

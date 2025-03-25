@@ -18,8 +18,8 @@ class CsvTableCopier():
             - caller_name : name of the calling script/module (for logging)
         """
         self.config = get_config()
-        set_up_logging(self.config)
-        self.caller_name = caller_name or "UnspecifiedCaller"
+        script_name = caller_name or self.__class__.__name__
+        set_up_logging(self.config, script_name)
 
         self.config["source_file"] = source_file
         self.config["target_table"] = target_table
@@ -44,10 +44,10 @@ class CsvTableCopier():
                 total_read += len(chunk)
                 yield chunk
 
-            logging.info(f"[{self.caller_name}] Read {total_read} rows from {csv_path}")
+            logging.info(f"Read {total_read} rows from {csv_path}")
 
         except Exception as e:
-            logging.info(f"[{self.caller_name}] Error loading CSV file into DataFrame: {e}")
+            logging.info(f"Error loading CSV file into DataFrame: {e}")
             raise
 
 
@@ -64,10 +64,10 @@ class CsvTableCopier():
             # Delete all rows from the table (commit logic is in 'main')
             cursor.execute(f"DELETE FROM {self.config['target_table']}")
 
-            logging.info(f"[{self.caller_name}] Deleted {row_count} rows from {self.config['target_table']}")
+            logging.info(f"Deleted {row_count} rows from {self.config['target_table']}")
 
         except Exception as e:
-            logging.critical(f"[{self.caller_name}] Error clearing down table {self.config['target_table']}: {e}")
+            logging.critical(f"Error clearing down table {self.config['target_table']}: {e}")
             raise
 
 
@@ -101,7 +101,7 @@ class CsvTableCopier():
             cursor.executemany(insert_cmd, data_for_insert)
 
         except Exception as e:
-            logging.critical(f"[{self.caller_name}] Error loading CSV data: {e}")
+            logging.critical(f"Error loading CSV data: {e}")
             raise
 
 
@@ -126,11 +126,11 @@ class CsvTableCopier():
                 conn.commit()
                 total_written += len(chunk)
 
-            logging.info(f"[{self.caller_name}] Wrote {total_written} rows to table {self.config['target_table']}")
+            logging.info(f"Wrote {total_written} rows to table {self.config['target_table']}")
 
         except Exception as e:
             # In case of error, rollback DB transaction and display error
-            logging.critical(f"[{self.caller_name}] Error in ETL process: {e}")
+            logging.critical(f"Error in ETL process: {e}")
             if conn:    conn.rollback()
             raise
 
