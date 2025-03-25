@@ -4,7 +4,7 @@ import os
 import re
 from multiprocessing import Pool
 import time
-from src.utils.etl_utils import get_config, set_up_logging, is_valid_date
+from src.etl.core.etl_utils import get_config, set_up_logging, is_valid_date
 
 
 def init():

@@ -5,7 +5,7 @@ import re
 from multiprocessing import Pool
 import time
 import traceback
-from src.utils.etl_utils import get_config, set_up_logging
+from src.etl.core.etl_utils import get_config, set_up_logging
 
 
 def init():

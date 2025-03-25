@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import logging
 import datetime
-from src.utils.etl_utils import get_config, set_up_logging, connect_to_db
+from src.etl.core.etl_utils import get_config, set_up_logging, connect_to_db
 
 class TableTester():
     """
@@ -125,6 +125,10 @@ class TableTester():
         Verifies matching row count between the source and target dataframes.
         
         Note: failure is expected when ETL process being tested involves UNION/DISTINCT logic.
+
+        Returns:
+            Success: True for success, False for failure
+            Results: On success, test description. On failure, test description and failure details
         """
         test_desc = "Row count matches"
 
@@ -139,6 +143,10 @@ class TableTester():
         Tests for matching column values in simple 1:1 row compare (sorted on key).
         
         This test case is abandoned on row count mismatch or key mismatch between rows.
+        
+        Returns:
+            Success: True for success, False for failure
+            Results: On success, test description. On failure, test description and failure details
         """
         test_desc = "Simple 1:1 row comparison"
         key_column = self.key_column
@@ -192,6 +200,10 @@ class TableTester():
 
         Intended for testing ETL scripts where target is populated using UNION/DISTINCT logic
         (tcB does not work in these cases).
+
+        Returns:
+            Success: True for success, False for failure
+            Results: On success, test description. On failure, test description and failure details
         """
         test_desc = "Key-based column comparison"
         key_column = self.key_column
@@ -204,7 +216,7 @@ class TableTester():
         common_keys = set(source_dict.keys()).intersection(set(target_dict.keys()))
 
         if len(common_keys) == 0:
-            return False, f"ERROR: Key-based column matching abandoned, no matching keys"
+            return False, f"{test_desc} - no matching keys"
 
         # Iterate through source/target row-pairs.
         row_mismatches = []
@@ -231,7 +243,7 @@ class TableTester():
                 row_mismatches.append(f"Mismatches for key {key}: " + ','.join(column_mismatches))
 
         if len(row_mismatches) == 0:
-            return True, f"{test_desc} - {len(common_keys)} rows compared, all matched"
+            return True, f"{test_desc} - {len(common_keys)} rows compared"
         else:
             return False, f"{test_desc} - " + '\n'.join(row_mismatches)
 

@@ -2,7 +2,7 @@
 Get student/program links from load table, store in nn056 stage table.
 For additional files in 056 schema, UNION selects from respective load tables.
 """
-from src.etl.TableCopier import TableCopier
+from src.etl.core.TableCopier import TableCopier
 import os
 
 def main():

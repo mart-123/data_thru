@@ -1,7 +1,7 @@
 import pandas as pd
 import subprocess
 import os
-from src.utils.etl_utils import get_config
+from src.etl.core.etl_utils import get_config
 
 config = get_config()
 test_results = []

@@ -54,6 +54,11 @@ def get_config(env="dev"):
         config["info_log_file_path"] = os.path.join(config["log_dir"], "etl_info.log")
         config["error_log_file_path"] = os.path.join(config["log_dir"], "etl_error.log")
         config["etl_script_dir"] = os.path.join(base_dir, config["etl_script_dir"])
+        config["load_script_dir"] = os.path.join(base_dir, config["load_script_dir"])
+        config["stage_script_dir"] = os.path.join(base_dir, config["stage_script_dir"])
+        config["dim_script_dir"] = os.path.join(base_dir, config["dim_script_dir"])
+        config["fact_script_dir"] = os.path.join(base_dir, config["fact_script_dir"])
+        config["view_script_dir"] = os.path.join(base_dir, config["view_script_dir"])
         config["env"] = env
 
         # Get DB connection config

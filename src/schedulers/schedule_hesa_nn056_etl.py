@@ -3,7 +3,7 @@ import subprocess
 from prefect import task, flow
 from prefect.tasks import task_input_hash
 from datetime import timedelta
-from src.utils.etl_utils import get_config
+from src.etl.core.etl_utils import get_config
 
 @task
 def run_transform_scripts(config):
@@ -16,7 +16,7 @@ def run_transform_scripts(config):
 
     all_success = True
     for script in transform_scripts:
-        result = subprocess.run(["python3", f"{config['etl_script_dir']}/{script}"],
+        result = subprocess.run(["python3", f"{config['extract_script_dir']}/{script}"],
                        capture_output=True, text=True)
 
         if result.returncode != 0:
@@ -52,7 +52,7 @@ def run_load_scripts(config):
 
     success = True
     for script in load_scripts:
-        result = subprocess.run(["python3", f"{config['etl_script_dir']}/{script}"],
+        result = subprocess.run(["python3", f"{config['load_script_dir']}/{script}"],
                                 capture_output=True, text=True)
 
         if result.returncode != 0:

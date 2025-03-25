@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import logging
-from src.utils.etl_utils import get_config, set_up_logging, connect_to_db
+from src.etl.core.etl_utils import get_config, set_up_logging, connect_to_db
 
 class CsvTableCopier():
     """

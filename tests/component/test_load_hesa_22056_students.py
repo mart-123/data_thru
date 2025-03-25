@@ -1,13 +1,13 @@
 import os
 import subprocess
-from src.utils.etl_utils import get_config
-from src.utils.TableTester import TableTester
+from src.etl.core.etl_utils import get_config
+from src.testing.TableTester import TableTester
 
 config = get_config()
 
 def run_etl_script():
      # Run ETL script whose output is to be tested.
-    etl_script_name = "load_hesa_22056_student_programs.py"
+    etl_script_name = "load_hesa_22056_students.py"
     
     result = subprocess.run(["python3", f"{config['etl_script_dir']}/{etl_script_name}"],
                     capture_output=True, text=True)
@@ -19,21 +19,25 @@ def run_etl_script():
 
 
 def main():
-    run_etl_script()
+#    run_etl_script()
 
     # Declare parameters for test suite
-    source_csv = "student_programs_transformed.csv"
-    target_table = "load_hesa_22056_student_programs"
+    this_script_name = os.path.basename(__file__)
+    source_csv = "students_transformed.csv"
+    target_table = "load_hesa_22056_students"
     key_column = "student_guid"
     column_mappings = {"student_guid": "student_guid",
-                    "email": "email",
-                    "program_guid": "program_guid",
-                    "program_code": "program_code",
-                    "program_name": "program_name",
-                    "enrol_date": "enrol_date",
-                    "fees_paid": "fees_paid"}
-
-    this_script_name = os.path.basename(__file__)
+                        "first_names": "first_names",
+                        "last_name": "last_name",
+                        "dob": "dob",
+                        "phone": "phone",
+                        "email": "email",
+                        "home_address": "home_addr",
+                        "home_postcode": "home_postcode",
+                        "home_country": "home_country",
+                        "term_address": "term_addr",
+                        "term_postcode": "term_postcode",
+                        "term_country": "term_country"}
 
     # Call test suite
     table_tester = TableTester(
