@@ -1,5 +1,7 @@
 import logging
 import os
+import os.path
+import sys
 import json
 import datetime
 import subprocess
@@ -17,41 +19,69 @@ def get_windows_host_ip():
         ip_address = result.stdout.split()[1]
         return ip_address
     except Exception as e:
-        logging.critical(f"Error retrieving Windows host IP address: {e}")
+        # As logging hasn't yet been set up, write error to stderr
+        print(f"critical error retrieving Windows host IP: {e}", file=sys.stderr)
         raise
 
 
-def get_config(env="dev"):
+def find_dotenv_file():
     """
-    Reads json config file into 'config' dictionary.
-    Appends various working directories and file paths.
-    Usage:
-        - call from ETL process with config = get_config()
-        - add further config[] items for process-specific filepaths, etc
+    Find .env file by checking this script's source directory and parent
+    directories. Returns full filepath or raises FileNotFoundError.
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    current_dir = script_dir
+
+    for _ in range(4):
+        possible_env_file = os.path.join(current_dir, '.env')
+        if os.path.isfile(possible_env_file):
+            return possible_env_file
+        
+        current_dir = os.path.dirname(current_dir)
+
+    # If control gets here, .env file was not found.
+    raise FileNotFoundError(f"unable to find .env file in {script_dir}")            
+
+
+def get_config():
+    """
+    Reads main config file (nested json) and uses its contents to build
+    fully qualified file/dir path names in flat 'config' dictionary.
+
+    Returns a dictionary containing application config including:
+        - logging directories and files
+        - data directories
+
+    Expects to find main config filepath in .env file in project root.
     """
     try:
+        # 0. Create flat config dictionary (to contain working directories)
+        config = {}
+
         # 1. Load basic environment variables (main config filename)
-        dotenv_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env')
-        load_dotenv(dotenv_file)
+        dotenv_file_path = find_dotenv_file()
+        load_dotenv(dotenv_file_path, override=True)
         base_dir = os.getenv("BASE_DIR")
         config_file_path = os.getenv("CONFIG_FILE")
+        print(f"loaded .env from: {dotenv_file_path}")
+        print(f"using config file: {config_file_path}")
 
         # 2. Load main config file (contains nested, relative directories)
         with open(config_file_path, "r") as config_file:
             json_config = json.load(config_file)
-
-        # 3. Create flat config dictionary (to contain fully qualified directories)
-        config = {}
 
         # 4. Get base directories (absolute paths)
         logs_path = os.path.join(base_dir, json_config["paths"]["base"]["logs"])
         data_path = os.path.join(base_dir, json_config["paths"]["base"]["data"])
         scripts_path = os.path.join(base_dir, json_config["paths"]["base"]["scripts"])
 
-        # 5. Declare environment-specific log files
+        # 5. Declare log directories/files (using environment name parameter)
+        env = json_config["environment"]
         config["log_dir"] = os.path.join(logs_path, env)
         config["info_log_file"] = os.path.join(config["log_dir"], "etl_info.log")
         config["error_log_file"] = os.path.join(config["log_dir"], "etl_error.log")
+        config["env"] = env
+        print(f"environment: {env}")
 
         # 6. Declare data directories
         config["extracts_dir"] = os.path.join(data_path, json_config["paths"]["data"]["extracts"])
@@ -67,19 +97,19 @@ def get_config(env="dev"):
         config["fact_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["fact"])
         config["view_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["view"])
 
-        # Get database settings and store environment label
+        # Get database settings
 #        config["db_host_ip"] = get_windows_host_ip() # only for windows-hosted MySQL connecting from WSL2
         config["db_host_ip"] = "localhost"
         config["db_port"] = os.getenv("DB_PORT")
         config["db_user"] = os.getenv("DB_USER")
         config["db_pwd"] = os.getenv("DB_PWD")
         config["db_name"] = os.getenv("DB_NAME")
-        config["env"] = env
         
         return config
 
     except Exception as e:
-        logging.critical(f"Error loading config: {e}")
+        # As logging hasn't yet been set up, write config error to stderr
+        print(f"critical error loading config: {e}", file=sys.stderr)
         raise
 
 
@@ -117,7 +147,7 @@ def set_up_logging(config, script_name=None):
         root_logger.addHandler(error_handler)
 
     except Exception as e:
-        print(f"Error setting up logging: {e}")
+        print(f"error setting up logging: {e}")
         raise
 
 

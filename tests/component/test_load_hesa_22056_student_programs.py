@@ -13,9 +13,9 @@ def run_etl_script():
                     capture_output=True, text=True)
 
     if result.returncode != 0:
-        print(f"Error running {etl_script_name}: {result.stderr}")
+        print(f"error running {etl_script_name}: {result.stderr}")
     else:
-        print(f"Script {etl_script_name} completed successfully")
+        print(f"script {etl_script_name} completed successfully")
 
 
 def main():

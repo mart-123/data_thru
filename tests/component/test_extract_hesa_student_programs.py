@@ -12,9 +12,9 @@ def run_etl_process(script_name: str):
                         capture_output=True, text=True)
 
     if result.returncode != 0:
-        print(f"Error running {script_name}: {result.stderr}")
+        print(f"error running {script_name}: {result.stderr}")
     else:
-        print(f"Script {script_name} completed successfully")
+        print(f"script {script_name} completed successfully")
 
 
 def get_transformed_csv(file_name: str):
