@@ -24,6 +24,8 @@ class TableTester():
                 source_csv_type: Indicates from which directory to read CSV file.
                 source_table: Source table if target was loaded from another table.
                 caller_name: Name of calling script/module for logging, defaults to 'UnspecifiedCaller'.
+            
+            Note: column mappings and key column are converted to lowercase to support inconsistently-cased CSV files.
         """
         self.config = get_config()
 
@@ -34,13 +36,16 @@ class TableTester():
         # Initialise test results collection
         self.test_results = []
 
-        # Store parameters in instance variables
+        # Store source/target details
         self.source_table = source_table
         self.source_csv = source_csv
         self.target_table = target_table
-        self.column_mappings = column_mappings
-        self.key_column = key_column
-        
+
+        # Store column mappings/key column. Also convert to lowercase, ensuring key-based
+        # matching works with CSV files that have capitalised column names.
+        self.key_column = key_column.lower()
+        self.column_mappings = {k.lower(): v.lower() for k, v in column_mappings.items()}
+
         # Build filepath for source CSV file if provided.
         if source_csv:
             if source_csv_type == 'lookup':
@@ -106,11 +111,9 @@ class TableTester():
 
 
     def _read_csv(self, csv_path):
-        """Retrieves data from the given CSV file.
-
-        Results are converted to DataFrame. No need to cast dates as strings (as in table method)
-        as they are read from CSV using dtype=str.
-
+        """Retrieves data from the given CSV file and returns a DataFrame.
+        Note: column names are converted to lowercase to facilitate key-based matching.
+        
         Args:
             conn: Established database connection.
             csv_path: Fully qualified filename of CSV file.
@@ -119,8 +122,11 @@ class TableTester():
             df: Query results converted to a DataFrame.
         """
         df = pd.read_csv(csv_path, dtype=str)
-        total_read = len(df)
-        logging.info(f"Read {total_read} rows from {self.source_csv_path}")
+
+        # Convert column names to lowercase (to support key-based row matching)
+        df.columns = [col.lower() for col in df.columns]
+
+        logging.info(f"Read {len(df)} rows from {self.source_csv_path}")
         return df
 
 
