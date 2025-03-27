@@ -1,7 +1,7 @@
 import pandas as pd
 import random
 import os
-from utils.etl_utils import get_config
+from src.etl.core.etl_utils import get_config
 
 
 def init():

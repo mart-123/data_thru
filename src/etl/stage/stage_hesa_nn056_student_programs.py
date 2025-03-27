@@ -8,7 +8,11 @@ import os
 def main():
     source_query = """SELECT t1.student_guid, t1.program_guid, t1.enrol_date,
                       t1.fees_paid, t1.source_file, t1.hesa_delivery
-                      FROM load_hesa_22056_student_programs t1"""    
+                      FROM load_hesa_22056_student_programs t1
+                      UNION
+                      SELECT t2.student_guid, t2.program_guid, t2.enrol_date,
+                      t2.fees_paid, t2.source_file, t2.hesa_delivery
+                      FROM load_hesa_23056_student_programs t2"""    
     source_cols = ['student_guid', 'program_guid', 'enrol_date', 'fees_paid', 'source_file', 'hesa_delivery']
     target_table = 'stage_hesa_nn056_student_programs'
     target_cols = ['student_guid', 'program_guid', 'enrol_date', 'fees_paid', 'source_file', 'hesa_delivery']

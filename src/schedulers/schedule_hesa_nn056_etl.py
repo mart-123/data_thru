@@ -47,7 +47,17 @@ def run_load_scripts(config):
         "load_hesa_22056_lookup_trans.py",
         "load_hesa_22056_lookup_z_ethnicgrp1.py",
         "load_hesa_22056_lookup_z_ethnicgrp2.py",
-        "load_hesa_22056_lookup_z_ethnicgrp3.py"
+        "load_hesa_22056_lookup_z_ethnicgrp3.py",
+        "load_hesa_23056_lookup_disability.py",
+        "load_hesa_23056_lookup_ethnicity.py",
+        "load_hesa_23056_lookup_genderid.py",
+        "load_hesa_23056_lookup_religion.py",
+        "load_hesa_23056_lookup_sexid.py",
+        "load_hesa_23056_lookup_sexort.py",
+        "load_hesa_23056_lookup_trans.py",
+        "load_hesa_23056_lookup_z_ethnicgrp1.py",
+        "load_hesa_23056_lookup_z_ethnicgrp2.py",
+        "load_hesa_23056_lookup_z_ethnicgrp3.py"
     ]
 
     success = True
