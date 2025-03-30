@@ -9,7 +9,7 @@ class TableTester():
     Helper class for testing SQL table contents vs another table/CSV file.
     """
     
-    def __init__(self, target_table: str, column_mappings: dict, key_column: str,
+    def __init__(self, target_table: str, column_mappings: dict,
                  source_csv: str = "", source_csv_type: str = "", source_table: str = "",
                  caller_name: str = None):
         """Constructor with source and target details provided as arguments.
@@ -19,7 +19,6 @@ class TableTester():
             Args:
                 target_table: Table whose contents are being verified.
                 column_mappings: Dictionary mapping source column names to target column names.
-                key_column: Name of column used to match rows between source/target datasets.
                 source_csv: CSV filename if target was loaded from transformed CSV.
                 source_csv_type: Indicates from which directory to read CSV file.
                 source_table: Source table if target was loaded from another table.
@@ -41,9 +40,8 @@ class TableTester():
         self.source_csv = source_csv
         self.target_table = target_table
 
-        # Store column mappings/key column. Also convert to lowercase, ensuring key-based
-        # matching works with CSV files that have capitalised column names.
-        self.key_column = key_column.lower()
+        # Store column mappings (converted to lowercase to support
+        # vendor-supplied CSV files containing capitalised column names).
         self.column_mappings = {k.lower(): v.lower() for k, v in column_mappings.items()}
 
         # Build filepath for source CSV file if provided.
@@ -52,6 +50,8 @@ class TableTester():
                 self.source_csv_path = os.path.join(self.config["lookups_dir"], source_csv)
             elif source_csv_type == 'transformed':
                 self.source_csv_path = os.path.join(self.config["transformed_dir"], source_csv)
+            elif source_csv_type == 'expected':
+                self.source_csv_path = os.path.join(self.config["expected_dir"], source_csv)
             else:
                 self.source_csv_path = os.path.join(self.config["transformed_dir"], source_csv)
         else:
@@ -115,7 +115,6 @@ class TableTester():
         Note: column names are converted to lowercase to facilitate key-based matching.
         
         Args:
-            conn: Established database connection.
             csv_path: Fully qualified filename of CSV file.
         
         Returns:
@@ -130,132 +129,77 @@ class TableTester():
         return df
 
 
-    def _tcA_row_count_matches(self, source_df: pd.DataFrame, target_df: pd.DataFrame):
+    def _tcA_row_count_test(self, source_df: pd.DataFrame, target_df: pd.DataFrame):
         """
-        Verifies matching row count between the source and target dataframes.
+        Compares row count between source and target dataframes.
         
-        Note: failure is expected when ETL process being tested involves UNION/DISTINCT logic.
+        Note: test is expected to fail when ETL process involved UNION/DISTINCT.
 
         Returns:
             Success: True for success, False for failure
             Results: On success, test description. On failure, test description and failure details
         """
-        test_desc = "Row count matches"
-
         if len(source_df) == len(target_df):
-            return True, f"{test_desc}"
+            return True, f"Source and target both have {len(source_df)} rows"
         else:
-            return False, f"{test_desc} - source: {len(source_df)} target: {len(target_df)}"
+            return False, f"Source has {len(source_df)} rows, target has {len(target_df)} rows"
 
 
-    def _tcB_simple_column_values_match(self, source_df: pd.DataFrame, target_df: pd.DataFrame):
+    def _tcB_column_values_test(self, source_df: pd.DataFrame, target_df: pd.DataFrame):
         """
-        Tests for matching column values in simple 1:1 row compare (sorted on key).
-        
-        This test case is abandoned on row count mismatch or key mismatch between rows.
+        Compares column values after sorting both dataframes by all mapped columns.
         
         Returns:
             Success: True for success, False for failure
             Results: On success, test description. On failure, test description and failure details
         """
-        test_desc = "Simple 1:1 row comparison"
-        key_column = self.key_column
-
-        # Ensure row counts match
+        # Check row counts match
         if len(source_df) != len(target_df):
-            return False, f"ERROR: Simple comparison abandoned, row count mismatch"
+            return False, f"ERROR: row count mismatch"
 
-        # Sort both dataframes on the given key column.
-        source_df = source_df.sort_values(by=key_column).reset_index(drop=True).copy()
-        target_df = target_df.sort_values(by=key_column).reset_index(drop=True).copy()
+        # Sort both dataframes (on all columns rather than a 'key column')
+        source_sort_cols = list(self.column_mappings.keys())
+        target_sort_cols = list(self.column_mappings.values())
+        source_df = source_df.sort_values(by=source_sort_cols).reset_index(drop=True).copy()
+        target_df = target_df.sort_values(by=target_sort_cols).reset_index(drop=True).copy()
 
-        row_mismatches = []
+        # Iterate through source/target row-pairs and build 'row mismatches' list
+        mismatched_row_indices = []
+        mismatched_row_details = []
 
-        # Iterate through source/target row-pairs.
         for i in range(0, len(source_df)):
             source_row = source_df.iloc[i]
             target_row = target_df.iloc[i]
 
-            if source_row[key_column] != target_row[key_column]:
-                return False, f"ERROR: Simple comparison abandoned, key mismatch: {source_row[key_column]}/{target_row[key_column]}"
-
-            # Compare source/target values for each column.
+            # Iterate through columns to be compared for the row
             column_mismatches = []
+
             for source_column, target_column in self.column_mappings.items():
                 source_val = source_row[source_column]
                 target_val = target_row[target_column]
 
-                # Check for source-target mismatch. Match conditions are NaN-NaN or value-value.
-                if pd.isna(source_val) and not pd.isna(target_val):
-                    column_mismatches.append(f"{target_column}: {target_row[target_column]}, expected: {source_row[source_column]}")
-                elif pd.isna(target_val) and not pd.isna(source_val):
-                    column_mismatches.append(f"{target_column}: {target_row[target_column]}, expected: {source_row[source_column]}")
-                elif source_val != target_val:
+                # Check for source/target mismatch. Match conditions are NaN-NaN or value-value.
+                if ((pd.isna(source_val) and not pd.isna(target_val)) or
+                    (pd.isna(target_val) and not pd.isna(source_val)) or
+                    (source_val != target_val)):
                     column_mismatches.append(f"{target_column}: {target_row[target_column]}, expected: {source_row[source_column]}")
 
-            # If row contained any column mismatches, append details to list.
+            # If mismatches found in the row pair, append details to list
             if len(column_mismatches) > 0:
-                row_mismatches.append(f"Mismatches for key {target_row[key_column]}: " + ','.join(column_mismatches))
+                mismatched_row_indices.append(i)
 
-        if len(row_mismatches) == 0:
-            return True, f"{test_desc}"
+                if len(mismatched_row_details) < 3:
+                    first_col = target_sort_cols[0]
+                    second_col = target_sort_cols[1]
+                    row_id = f"{first_col}: {target_row[first_col]}, {second_col}: {target_row[second_col]}"
+                    mismatched_row_details.append(f"            Row {i} ({row_id}): {','.join(column_mismatches)}")
+
+        if len(mismatched_row_indices) == 0:
+            return True, f"All {len(source_df)} rows match"
         else:
-            return False, f"{test_desc} - " + '\n'.join(row_mismatches)
-
-
-    def _tcC_key_based_column_values_match(self, source_df: pd.DataFrame, target_df: pd.DataFrame):
-        """
-        Tests for matching column values in a key-based row comparison (tests only
-        rows where there is a matching key).
-
-        Intended for testing ETL scripts where target is populated using UNION/DISTINCT logic
-        (tcB does not work in these cases).
-
-        Returns:
-            Success: True for success, False for failure
-            Results: On success, test description. On failure, test description and failure details
-        """
-        test_desc = "Key-based column comparison"
-        key_column = self.key_column
-
-        # Build dictionary of key/row pairs for source and target DF's
-        source_dict = {str(row[key_column]): row for _, row in source_df.iterrows()}
-        target_dict = {str(row[key_column]): row for _, row in target_df.iterrows()}
-
-        # Get keys that are common to source/target datasets
-        common_keys = set(source_dict.keys()).intersection(set(target_dict.keys()))
-
-        if len(common_keys) == 0:
-            return False, f"{test_desc} - no matching keys"
-
-        # Iterate through source/target row-pairs.
-        row_mismatches = []
-        for key in common_keys:
-            source_row = source_dict[key]
-            target_row = target_dict[key]
-
-            # Compare source/target values for each column.
-            column_mismatches = []
-            for source_column, target_column in self.column_mappings.items():
-                source_val = source_row[source_column]
-                target_val = target_row[target_column]
-
-                # Check for source-target mismatch. Match conditions are NaN-NaN or value-value.
-                if pd.isna(source_val) and not pd.isna(target_val):
-                    column_mismatches.append(f"{target_column}: {target_row[target_column]}, expected: {source_row[source_column]}")
-                elif pd.isna(target_val) and not pd.isna(source_val):
-                    column_mismatches.append(f"{target_column}: {target_row[target_column]}, expected: {source_row[source_column]}")
-                elif source_val != target_val:
-                    column_mismatches.append(f"{target_column}: {target_row[target_column]}, expected: {source_row[source_column]}")
-
-            # If row contained any column mismatches, append details to list.
-            if len(column_mismatches) > 0:
-                row_mismatches.append(f"Mismatches for key {key}: " + ','.join(column_mismatches))
-
-        if len(row_mismatches) == 0:
-            return True, f"{test_desc} - {len(common_keys)} rows compared"
-        else:
-            return False, f"{test_desc} - " + '\n'.join(row_mismatches)
+            error_msg = f"{len(mismatched_row_indices)} mismatched rows out of {len(source_df)} rows. First few:\n"
+            error_msg += "\n".join(mismatched_row_details)
+            return False, error_msg
 
 
     def print_results(self):
@@ -265,11 +209,15 @@ class TableTester():
 
         print(f"{len(tests_failed)} tests failed:")
         for test in tests_failed:
-            print(f"    {test[0]} ({test[2]}) : FAILED")
+            print(f"    {test[0]}: FAILED")
+            print(f"      {test[2]}")
+            print()
 
         print(f"{len(tests_passed)} tests passed:")
         for test in tests_passed:
-            print(f"    {test[0]} ({test[2]}) : PASSED")
+            print(f"    {test[0]}: PASSED")
+            print(f"      {test[2]}")
+            print()
 
         logging.info(f"tests passed: {len(tests_passed)} failed: {len(tests_failed)}")
 
@@ -293,9 +241,8 @@ class TableTester():
             target_df = self._read_table(conn, self.target_table, target_columns)
 
             test_cases = {
-                "tcA_row_count_matches": self._tcA_row_count_matches,
-                "tcB_simple_column_values_match": self._tcB_simple_column_values_match,
-                "tcC_key_based_column_values_match": self._tcC_key_based_column_values_match
+                "tcA_row_count_test": self._tcA_row_count_test,
+                "tcB_column_values_test": self._tcB_column_values_test,
             }
 
             # Run all tests and print results

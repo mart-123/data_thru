@@ -7,7 +7,7 @@ config = get_config()
 
 def run_etl_script():
      # Run ETL script whose output is to be tested.
-    etl_script_name = "load_hesa_22056_lookup_disability.py"
+    etl_script_name = "stage_hesa_nn056_lookup_disability.py"
     
     result = subprocess.run(["python3", f"{config['load_script_dir']}/{etl_script_name}"],
                     capture_output=True, text=True)
@@ -23,11 +23,11 @@ def main():
 
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)
-    source_csv = "hesa_22056_DISABILITY.csv"
-    target_table = "load_hesa_22056_lookup_disability"
-    key_column = "code"
+    source_csv = "expected_stage_hesa_nn056_DISABILITY.csv"
+    target_table = "stage_hesa_nn056_lookup_disability"
     column_mappings = {
         "Code": "code",
+        "Delivery": "hesa_delivery",
         "Label": "label"
         }
 
@@ -35,9 +35,8 @@ def main():
     table_tester = TableTester(
                                target_table=target_table,
                                column_mappings=column_mappings,
-                               key_column=key_column,
                                source_csv=source_csv,
-                               source_csv_type="lookup",
+                               source_csv_type="expected",
                                source_table="",
                                caller_name=this_script_name)
     

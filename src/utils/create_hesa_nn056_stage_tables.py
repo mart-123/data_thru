@@ -51,7 +51,7 @@ def generate_create_statements():
 
     create_statements["stage_hesa_nn056_student_programs"] = """
     CREATE TABLE stage_hesa_nn056_student_programs (
-        student_guid CHAR(36) COMMENT 'HESA db-internal PK student id (actually they use fixed-len numeric)',
+        student_guid CHAR(36) COMMENT 'HESA db-internal PK student id',
         program_guid CHAR(36) COMMENT 'HESA db-internal PK for program',
         enrol_date DATE COMMENT 'Date on which student enrolled for academic session',
         fees_paid CHAR(1) COMMENT 'Indicates whether fees have been paid for the academic session',

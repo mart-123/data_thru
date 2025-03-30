@@ -87,6 +87,7 @@ def get_config():
         config["extracts_dir"] = os.path.join(data_path, json_config["paths"]["data"]["extracts"])
         config["bad_data_dir"] = os.path.join(data_path, json_config["paths"]["data"]["bad_data"])
         config["transformed_dir"] = os.path.join(data_path, json_config["paths"]["data"]["transformed"])
+        config["expected_dir"] = os.path.join(data_path, json_config["paths"]["data"]["expected"])
         config["lookups_dir"] = os.path.join(data_path, json_config["paths"]["data"]["lookups"])
 
         # 7. Declare script directories
