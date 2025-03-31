@@ -15,9 +15,9 @@ def run_extract_scripts(config):
     ]
 
     all_success = True
-    for script, delivery in transform_scripts:
+    for script, delivery_code in transform_scripts:
         script_path = f"{config['extract_script_dir']}/{script}"
-        result = subprocess.run(["python3", script_path, delivery],
+        result = subprocess.run(["python3", script_path, delivery_code],
                        capture_output=True, text=True)
 
         if result.returncode != 0:
@@ -36,34 +36,35 @@ def run_extract_scripts(config):
 def run_load_scripts(config):
     print("Running loads...")
     load_scripts = [
-        "load_hesa_22056_students.py",
-        "load_hesa_22056_student_programs.py",
-        "load_hesa_22056_demographics.py",
-        "load_hesa_22056_lookup_disability.py",
-        "load_hesa_22056_lookup_ethnicity.py",
-        "load_hesa_22056_lookup_genderid.py",
-        "load_hesa_22056_lookup_religion.py",
-        "load_hesa_22056_lookup_sexid.py",
-        "load_hesa_22056_lookup_sexort.py",
-        "load_hesa_22056_lookup_trans.py",
-        "load_hesa_22056_lookup_z_ethnicgrp1.py",
-        "load_hesa_22056_lookup_z_ethnicgrp2.py",
-        "load_hesa_22056_lookup_z_ethnicgrp3.py",
-        "load_hesa_23056_lookup_disability.py",
-        "load_hesa_23056_lookup_ethnicity.py",
-        "load_hesa_23056_lookup_genderid.py",
-        "load_hesa_23056_lookup_religion.py",
-        "load_hesa_23056_lookup_sexid.py",
-        "load_hesa_23056_lookup_sexort.py",
-        "load_hesa_23056_lookup_trans.py",
-        "load_hesa_23056_lookup_z_ethnicgrp1.py",
-        "load_hesa_23056_lookup_z_ethnicgrp2.py",
-        "load_hesa_23056_lookup_z_ethnicgrp3.py"
+        ("load_hesa_nn056_students.py", "22056"),
+        ("load_hesa_nn056_student_programs.py", "22056"),
+        ("load_hesa_nn056_demographics.py", "22056"),
+        ("load_hesa_nn056_lookup_disability.py", "22056"),
+        ("load_hesa_nn056_lookup_ethnicity.py", "22056"),
+        ("load_hesa_nn056_lookup_genderid.py", "22056"),
+        ("load_hesa_nn056_lookup_religion.py", "22056"),
+        ("load_hesa_nn056_lookup_sexid.py", "22056"),
+        ("load_hesa_nn056_lookup_sexort.py", "22056"),
+        ("load_hesa_nn056_lookup_trans.py", "22056"),
+        ("load_hesa_nn056_lookup_z_ethnicgrp1.py", "22056"),
+        ("load_hesa_nn056_lookup_z_ethnicgrp2.py", "22056"),
+        ("load_hesa_nn056_lookup_z_ethnicgrp3.py", "22056"),
+        ("load_hesa_nn056_lookup_disability.py", "23056"),
+        ("load_hesa_nn056_lookup_ethnicity.py", "23056"),
+        ("load_hesa_nn056_lookup_genderid.py", "23056"),
+        ("load_hesa_nn056_lookup_religion.py", "23056"),
+        ("load_hesa_nn056_lookup_sexid.py", "23056"),
+        ("load_hesa_nn056_lookup_sexort.py", "23056"),
+        ("load_hesa_nn056_lookup_trans.py", "23056"),
+        ("load_hesa_nn056_lookup_z_ethnicgrp1.py", "23056"),
+        ("load_hesa_nn056_lookup_z_ethnicgrp2.py", "23056"),
+        ("load_hesa_nn056_lookup_z_ethnicgrp3.py", "23056")
     ]
 
     success = True
-    for script in load_scripts:
-        result = subprocess.run(["python3", f"{config['load_script_dir']}/{script}"],
+    for script, delivery_code in load_scripts:
+        script_path = f"{config['load_script_dir']}/{script}"
+        result = subprocess.run(["python3", script_path, delivery_code],
                                 capture_output=True, text=True)
 
         if result.returncode != 0:

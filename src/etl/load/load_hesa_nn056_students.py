@@ -1,10 +1,12 @@
 import os
+import sys
 from src.etl.core.CsvTableCopier import CsvTableCopier
 
 def main():
     """Set generic config and process-specific additional (filenames, etc)"""
-    source_file = "students_transformed.csv"
-    target_table = "load_hesa_22056_students"
+    delivery_code = sys.argv[1]
+    source_file = f"hesa_{delivery_code}_students_transformed.csv"
+    target_table = f"load_hesa_{delivery_code}_students"
     column_mappings = {"student_guid": "student_guid",
                         "first_names": "first_names",
                         "last_name": "last_name",
