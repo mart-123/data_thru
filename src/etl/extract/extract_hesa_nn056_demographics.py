@@ -1,23 +1,24 @@
 import pandas as pd
 import logging
 import os
-import re
+import sys
 from multiprocessing import Pool
 import time
 import traceback
 from src.etl.core.etl_utils import get_config, set_up_logging
 
 
-def init():
+def init(delivery_code):
     """Set generic config and process-specific additional (filenames, etc)"""
     config = get_config()
     script_name = os.path.basename(__file__)
     set_up_logging(config, script_name)
 
     # Process-specific config (typically filenames)
-    config['input_path'] = os.path.join(config['extracts_dir'], 'demographics_extract.csv')
-    config['transformed_path'] = os.path.join(config['transformed_dir'], 'demographics_transformed.csv')
-    config['bad_data_path'] = os.path.join(config['bad_data_dir'], 'demographics_bad_data.csv')
+    config["delivery_code"] = delivery_code
+    config["input_path"] = os.path.join(config["extracts_dir"], f"hesa_{delivery_code}_demographics_extract.csv")
+    config["transformed_path"] = os.path.join(config["transformed_dir"], f"hesa_{delivery_code}_demographics_transformed.csv")
+    config["bad_data_path"] = os.path.join(config["bad_data_dir"], f"hesa_{delivery_code}_demographics_bad_data.csv")
     return config
 
 
@@ -26,10 +27,10 @@ def init_output_files(config):
     Remove output files if they exist. This supports append mode and
     header-row logic during batched file writes.
     """
-    if os.path.exists(config['transformed_path']):
-        os.remove(config['transformed_path'])
-    if os.path.exists(config['bad_data_path']):
-        os.remove(config['bad_data_path'])
+    if os.path.exists(config["transformed_path"]):
+        os.remove(config["transformed_path"])
+    if os.path.exists(config["bad_data_path"]):
+        os.remove(config["bad_data_path"])
 
 
 def read_data_chunks(config, chunk_size=500):
@@ -38,7 +39,7 @@ def read_data_chunks(config, chunk_size=500):
     """
     logging.info(f"Reading extract file: {config['input_path']}")
 
-    for chunk in pd.read_csv(config['input_path'], chunksize=chunk_size, dtype=str):
+    for chunk in pd.read_csv(config["input_path"], chunksize=chunk_size, dtype=str):
         yield chunk
 
 
@@ -46,7 +47,7 @@ def check_columns(df: pd.DataFrame):
     """
     Checks the csv file contains all, and only, expected columns.
     """
-    expected_columns = ['stu_id','ethnicity','gender','religion','sexid','sexort','trans','ethnicity_grp1','ethnicity_grp1','ethnicity_grp1']
+    expected_columns = ["stu_id", "ethnicity", "gender", "religion", "sexid", "sexort", "trans", "ethnicity_grp1", "ethnicity_grp1", "ethnicity_grp1"]
     missing_columns = []
 
     for col in expected_columns:
@@ -65,18 +66,18 @@ def cleanse_data(df: pd.DataFrame, config):
     Checks for missing/invalid values, writing bad rows to 'bad_data' CSV file.
     """
     # Fill NA columns with empty string (simplifies subsequent validation logic)
-    columns_to_fill = ['stu_id','ethnicity','gender','religion','sexid','sexort','trans','ethnicity_grp1','ethnicity_grp2','ethnicity_grp3']
-    df[columns_to_fill] = df[columns_to_fill].fillna('')
+    columns_to_fill = ["stu_id", "ethnicity", "gender", "religion", "sexid", "sexort", "trans", "ethnicity_grp1", "ethnicity_grp2", "ethnicity_grp3"]
+    df[columns_to_fill] = df[columns_to_fill].fillna("")
 
-    cols_missing = ((df['stu_id'] == '') | (df['ethnicity'] == '') | (df['gender'] == '') | (df['religion'] == '') |
-                    (df['sexid'] == '') | (df['sexort'] == '') | (df['trans'] == '') |
-                    (df['ethnicity_grp1'] == '') | (df['ethnicity_grp2'] == '') | (df['ethnicity_grp3'] == ''))
+    cols_missing = ((df["stu_id"] == "") | (df["ethnicity"] == "") | (df["gender"] == "") | (df["religion"] == "") |
+                    (df["sexid"] == "") | (df["sexort"] == "") | (df["trans"] == "") |
+                    (df["ethnicity_grp1"] == "") | (df["ethnicity_grp2"] == "") | (df["ethnicity_grp3"] == ""))
 
     # Combine error series and write bad rows to separate csv file
     bad_indexes = cols_missing
     bad_rows = df[bad_indexes]
-    write_header = not(os.path.exists(config['bad_data_path']))
-    bad_rows.to_csv(config['bad_data_path'], mode='a', header=write_header, index=False)
+    write_header = not(os.path.exists(config["bad_data_path"]))
+    bad_rows.to_csv(config["bad_data_path"], mode="a", header=write_header, index=False)
 
     # return good rows
     good_rows = df[~bad_indexes]
@@ -91,7 +92,7 @@ def transform_batch(batch: pd.DataFrame):
     Call on entire file, each chunk, or during parallelisation.
     """
     df = batch.copy()
-    df.rename(columns={'stu_id': 'student_guid'}, inplace=True)
+    df.rename(columns={"stu_id": "student_guid"}, inplace=True)
 
     return df
 
@@ -115,8 +116,8 @@ def transform_parallel(df, batch_size=50):
 def write_transformed_data(transformed_df: pd.DataFrame, config):
     """Writes dataframe to CSV file, in append mode due to streaming/chunk processing.
     Header row generated for first batch (i.e. at beginning of file)."""
-    write_header = not(os.path.exists(config['transformed_path']))
-    transformed_df.to_csv(config['transformed_path'], mode='a', header=write_header, index=False)
+    write_header = not(os.path.exists(config["transformed_path"]))
+    transformed_df.to_csv(config["transformed_path"], mode="a", header=write_header, index=False)
 
 
 def main():
@@ -124,7 +125,8 @@ def main():
         start_time = time.time()
 
         # General set-up
-        config = init()
+        delivery_code = sys.argv[1]
+        config = init(delivery_code)
         init_output_files(config)
         count_read = 0
         count_transformed = 0
@@ -143,7 +145,7 @@ def main():
             write_transformed_data(chunk_copy, config)
 
         #  Final tidy up
-        logging.info(f"Rows read: {count_read}")
+        logging.info(f"Rows extracted: {count_read}")
         logging.info(f"Rows failed validation: {count_read - count_transformed}")
         logging.info(f"Rows transformed: {count_transformed}")
 
@@ -152,7 +154,7 @@ def main():
         logging.info(f"Demographics transform complete. Elapsed time: {elapsed_time:.4f} seconds")
 
     except Exception as e:
-        logging.critical(f"{type(e).__name__} during transform: {e}")
+        logging.critical(f"{type(e).__name__} during extract: {e}")
         logging.critical(traceback.format_exc())
 
 

@@ -9,14 +9,15 @@ from src.etl.core.etl_utils import get_config
 def run_extract_scripts(config):
     print("Running extracts...")
     transform_scripts = [
-        "extract_hesa_students.py",
-        "extract_hesa_demographics.py",
-        "extract_hesa_student_programs.py"
+        ("extract_hesa_nn056_students.py", "22056"),
+        ("extract_hesa_nn056_demographics.py", "22056"),
+        ("extract_hesa_nn056_student_programs.py", "22056")
     ]
 
     all_success = True
-    for script in transform_scripts:
-        result = subprocess.run(["python3", f"{config['extract_script_dir']}/{script}"],
+    for script, delivery in transform_scripts:
+        script_path = f"{config['extract_script_dir']}/{script}"
+        result = subprocess.run(["python3", script_path, delivery],
                        capture_output=True, text=True)
 
         if result.returncode != 0:

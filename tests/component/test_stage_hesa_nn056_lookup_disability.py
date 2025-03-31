@@ -5,10 +5,8 @@ from src.testing.TableTester import TableTester
 
 config = get_config()
 
-def run_etl_script():
-     # Run ETL script whose output is to be tested.
-    etl_script_name = "stage_hesa_nn056_lookup_disability.py"
-    
+def run_etl_script(etl_script_name):
+     # Run ETL script whose output is to be tested    
     result = subprocess.run(["python3", f"{config['load_script_dir']}/{etl_script_name}"],
                     capture_output=True, text=True)
 
@@ -19,8 +17,6 @@ def run_etl_script():
 
 
 def main():
-#    run_etl_script()
-
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)
     source_csv = "expected_stage_hesa_nn056_DISABILITY.csv"
@@ -44,4 +40,6 @@ def main():
 
 
 if __name__ == "__main__":
+# Uncomment to run ETL component first
+#    run_etl_script("stage_hesa_nn056_lookup_disability.py")
     main()

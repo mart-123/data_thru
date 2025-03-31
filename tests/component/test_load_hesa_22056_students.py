@@ -25,7 +25,6 @@ def main():
     this_script_name = os.path.basename(__file__)
     source_csv = "students_transformed.csv"
     target_table = "load_hesa_22056_students"
-    key_column = "student_guid"
     column_mappings = {"student_guid": "student_guid",
                         "first_names": "first_names",
                         "last_name": "last_name",
@@ -43,7 +42,6 @@ def main():
     table_tester = TableTester(
                                target_table=target_table,
                                column_mappings=column_mappings,
-                               key_column=key_column,
                                source_csv=source_csv,
                                source_csv_type="transformed",
                                source_table="",

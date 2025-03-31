@@ -22,7 +22,7 @@ class TableTester():
                 source_csv: CSV filename if target was loaded from transformed CSV.
                 source_csv_type: Indicates from which directory to read CSV file.
                 source_table: Source table if target was loaded from another table.
-                caller_name: Name of calling script/module for logging, defaults to 'UnspecifiedCaller'.
+                caller_name: Name of script that instantiated this class. Used in logging messages.
             
             Note: column mappings and key column are converted to lowercase to support inconsistently-cased CSV files.
         """
