@@ -25,7 +25,6 @@ def main():
     this_script_name = os.path.basename(__file__)
     source_csv = "hesa_22056_DISABILITY.csv"
     target_table = "load_hesa_22056_lookup_disability"
-    key_column = "code"
     column_mappings = {
         "Code": "code",
         "Label": "label"
@@ -35,7 +34,6 @@ def main():
     table_tester = TableTester(
                                target_table=target_table,
                                column_mappings=column_mappings,
-                               key_column=key_column,
                                source_csv=source_csv,
                                source_csv_type="lookup",
                                source_table="",

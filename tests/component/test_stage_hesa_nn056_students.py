@@ -5,9 +5,8 @@ from src.testing.TableTester import TableTester
 
 config = get_config()
 
-def run_etl_script():
+def run_etl_script(etl_script_name):
      # Run ETL script whose output is to be tested.
-    etl_script_name = "load_hesa_22056_students.py"
     
     result = subprocess.run(["python3", f"{config['load_script_dir']}/{etl_script_name}"],
                     capture_output=True, text=True)
@@ -19,12 +18,10 @@ def run_etl_script():
 
 
 def main():
-#    run_etl_script()
-
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)
-    source_csv = "hesa_22056_students_transformed.csv"
-    target_table = "load_hesa_22056_students"
+    source_csv = "expected_stage_hesa_nn056_students.csv"
+    target_table = "stage_hesa_nn056_students"
     column_mappings = {"student_guid": "student_guid",
                         "first_names": "first_names",
                         "last_name": "last_name",
@@ -36,14 +33,24 @@ def main():
                         "home_country": "home_country",
                         "term_address": "term_addr",
                         "term_postcode": "term_postcode",
-                        "term_country": "term_country"}
+                        "term_country": "term_country",
+                        "ethnicity": "ethnicity",
+                        "gender": "gender",
+                        "religion": "religion",
+                        "sexid": "sexid",
+                        "sexort": "sexort",
+                        "trans": "trans",
+                        "ethnicity_grp1": "ethnicity_grp1",
+                        "ethnicity_grp2": "ethnicity_grp2",
+                        "ethnicity_grp3": "ethnicity_grp3"
+                        }
 
     # Call test suite
     table_tester = TableTester(
                                target_table=target_table,
                                column_mappings=column_mappings,
                                source_csv=source_csv,
-                               source_csv_type="transformed",
+                               source_csv_type="expected",
                                source_table="",
                                caller_name=this_script_name)
     
@@ -51,4 +58,5 @@ def main():
 
 
 if __name__ == "__main__":
+#    run_etl_script("stage_hesa_nn056_students.py")
     main()

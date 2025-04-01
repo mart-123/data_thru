@@ -15,6 +15,7 @@ def main():
                     FROM load_hesa_22056_students t1
                     INNER JOIN load_hesa_22056_student_demographics t2
                             ON t2.student_guid = t1.student_guid
+                           AND t2.hesa_delivery = t1.hesa_delivery
                     
                     UNION
                     
@@ -25,7 +26,8 @@ def main():
                         t4.ethnicity_grp1, t4.ethnicity_grp2, t4.ethnicity_grp3
                     FROM load_hesa_23056_students t3
                     INNER JOIN load_hesa_23056_student_demographics t4
-                            ON t4.student_guid = t3.student_guid;
+                            ON t4.student_guid = t3.student_guid
+                           AND t4.hesa_delivery = t3.hesa_delivery
                     """
     source_cols = ['student_guid', 'first_names', 'last_name', 'phone', 'email', 'dob',
                     'home_addr', 'home_postcode', 'home_country', 'term_addr', 'term_postcode', 'term_country',

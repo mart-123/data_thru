@@ -11,7 +11,10 @@ def run_extract_scripts(config):
     transform_scripts = [
         ("extract_hesa_nn056_students.py", "22056"),
         ("extract_hesa_nn056_demographics.py", "22056"),
-        ("extract_hesa_nn056_student_programs.py", "22056")
+        ("extract_hesa_nn056_student_programs.py", "22056"),
+        ("extract_hesa_nn056_students.py", "23056"),
+        ("extract_hesa_nn056_demographics.py", "23056"),
+        ("extract_hesa_nn056_student_programs.py", "23056")
     ]
 
     all_success = True
@@ -49,6 +52,9 @@ def run_load_scripts(config):
         ("load_hesa_nn056_lookup_z_ethnicgrp1.py", "22056"),
         ("load_hesa_nn056_lookup_z_ethnicgrp2.py", "22056"),
         ("load_hesa_nn056_lookup_z_ethnicgrp3.py", "22056"),
+        ("load_hesa_nn056_students.py", "23056"),
+        ("load_hesa_nn056_student_programs.py", "23056"),
+        ("load_hesa_nn056_demographics.py", "23056"),
         ("load_hesa_nn056_lookup_disability.py", "23056"),
         ("load_hesa_nn056_lookup_ethnicity.py", "23056"),
         ("load_hesa_nn056_lookup_genderid.py", "23056"),

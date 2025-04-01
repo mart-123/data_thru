@@ -23,9 +23,8 @@ def main():
 
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)
-    source_csv = "demographics_transformed.csv"
+    source_csv = "hesa_22056_demographics_transformed.csv"
     target_table = "load_hesa_22056_student_demographics"
-    key_column = "student_guid"
     column_mappings = {
         "student_guid": "student_guid",
         "ethnicity": "ethnicity",
@@ -43,7 +42,6 @@ def main():
     table_tester = TableTester(
                                target_table=target_table,
                                column_mappings=column_mappings,
-                               key_column=key_column,
                                source_csv=source_csv,
                                source_csv_type="transformed",
                                source_table="",
