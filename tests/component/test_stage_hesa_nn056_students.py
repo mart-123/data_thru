@@ -8,7 +8,7 @@ config = get_config()
 def run_etl_script(etl_script_name):
      # Run ETL script whose output is to be tested.
     
-    result = subprocess.run(["python3", f"{config['load_script_dir']}/{etl_script_name}"],
+    result = subprocess.run(["python3", f"{config['stage_script_dir']}/{etl_script_name}"],
                     capture_output=True, text=True)
 
     if result.returncode != 0:
@@ -42,7 +42,8 @@ def main():
                         "trans": "trans",
                         "ethnicity_grp1": "ethnicity_grp1",
                         "ethnicity_grp2": "ethnicity_grp2",
-                        "ethnicity_grp3": "ethnicity_grp3"
+                        "ethnicity_grp3": "ethnicity_grp3",
+                        "source_file": "source_file"
                         }
 
     # Call test suite
