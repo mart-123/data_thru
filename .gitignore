@@ -5,7 +5,6 @@ venv_dev/
 logs/
 .env
 docker-compose.yml
-app_config/
 # VS Code personal settings
 .vscode/settings.json
 # Python bytecode files

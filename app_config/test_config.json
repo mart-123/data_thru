@@ -1,0 +1,25 @@
+{
+    "environment": "test",
+    "paths": {
+        "base": {
+            "logs": "logs",
+            "data": "data_test",
+            "scripts": "src/etl"
+        },
+        "data": {
+            "deliveries": "deliveries",
+            "bad_data": "bad_data",
+            "transformed": "transformed",
+            "expected": "expected",
+            "lookups": "lookups"
+        },
+        "scripts": {
+            "extract": "extract",
+            "load": "load",
+            "stage": "stage",
+            "dim": "dim",
+            "fact": "fact",
+            "view": "view"
+        }
+    }
+}

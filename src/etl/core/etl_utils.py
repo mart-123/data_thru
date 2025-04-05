@@ -84,7 +84,7 @@ def get_config():
         print(f"environment: {env}")
 
         # 6. Declare data directories
-        config["extracts_dir"] = os.path.join(data_path, json_config["paths"]["data"]["extracts"])
+        config["deliveries_dir"] = os.path.join(data_path, json_config["paths"]["data"]["deliveries"])
         config["bad_data_dir"] = os.path.join(data_path, json_config["paths"]["data"]["bad_data"])
         config["transformed_dir"] = os.path.join(data_path, json_config["paths"]["data"]["transformed"])
         config["expected_dir"] = os.path.join(data_path, json_config["paths"]["data"]["expected"])
