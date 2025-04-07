@@ -16,9 +16,9 @@ def init(delivery_code):
 
     # Process-specific config (typically filenames)
     config["delivery_code"] = delivery_code
-    config["input_path"] = os.path.join(config["deliveries_dir"], f"hesa_{delivery_code}_data_demographics.csv")
-    config["transformed_path"] = os.path.join(config["transformed_dir"], f"hesa_{delivery_code}_demographics_transformed.csv")
-    config["bad_data_path"] = os.path.join(config["bad_data_dir"], f"hesa_{delivery_code}_demographics_bad_data.csv")
+    config["input_path"] = os.path.join(config["deliveries_dir"], f"{delivery_code}/hesa_{delivery_code}_data_demographics.csv")
+    config["transformed_path"] = os.path.join(config["transformed_dir"], f"{delivery_code}/hesa_{delivery_code}_demographics_transformed.csv")
+    config["bad_data_path"] = os.path.join(config["bad_data_dir"], f"{delivery_code}/hesa_{delivery_code}_demographics_bad_data.csv")
     return config
 
 

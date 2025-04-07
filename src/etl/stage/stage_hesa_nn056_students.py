@@ -12,8 +12,8 @@ def main():
                         t1.source_file, t1.hesa_delivery,
                         t2.ethnicity, t2.gender, t2.religion, t2.sexid, t2.sexort, t2.trans,
                         t2.ethnicity_grp1, t2.ethnicity_grp2, t2.ethnicity_grp3
-                    FROM load_hesa_22056_students t1
-                    INNER JOIN load_hesa_22056_student_demographics t2
+                    FROM load_hesa_22056_20240331_students t1
+                    INNER JOIN load_hesa_22056_20240331_student_demographics t2
                             ON t2.student_guid = t1.student_guid
                            AND t2.hesa_delivery = t1.hesa_delivery
                     
@@ -24,8 +24,8 @@ def main():
                         t3.source_file, t3.hesa_delivery,
                         t4.ethnicity, t4.gender, t4.religion, t4.sexid, t4.sexort, t4.trans,
                         t4.ethnicity_grp1, t4.ethnicity_grp2, t4.ethnicity_grp3
-                    FROM load_hesa_23056_students t3
-                    INNER JOIN load_hesa_23056_student_demographics t4
+                    FROM load_hesa_23056_20250331_students t3
+                    INNER JOIN load_hesa_23056_20250331_student_demographics t4
                             ON t4.student_guid = t3.student_guid
                            AND t4.hesa_delivery = t3.hesa_delivery
                     """

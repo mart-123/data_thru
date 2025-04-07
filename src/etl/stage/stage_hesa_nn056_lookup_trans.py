@@ -5,14 +5,13 @@ For additional files in 056 schema, UNION selects from respective load tables.
 import os
 from src.etl.core.TableCopier import TableCopier
 
-
 def main():
     source_query = """
                     SELECT t1.code, t1.label, t1.source_file, t1.hesa_delivery
-                    FROM load_hesa_22056_lookup_trans t1
+                    FROM load_hesa_22056_20240331_lookup_trans t1
                     UNION
                     SELECT t2.code, t2.label, t2.source_file, t2.hesa_delivery
-                    FROM load_hesa_23056_lookup_trans t2
+                    FROM load_hesa_23056_20250331_lookup_trans t2
                     """
     source_cols = ['code', 'label', 'source_file', 'hesa_delivery']
     target_table = 'stage_hesa_nn056_lookup_trans'

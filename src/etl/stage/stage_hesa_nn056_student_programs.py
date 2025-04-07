@@ -18,7 +18,7 @@ def main():
                     t1.source_file, 
                     t1.hesa_delivery
                 FROM 
-                    load_hesa_22056_student_programs t1
+                    load_hesa_22056_20240331_student_programs t1
                 JOIN 
                     stage_hesa_nn056_students s1
                     ON s1.student_guid = t1.student_guid
@@ -38,7 +38,7 @@ def main():
                     t2.source_file, 
                     t2.hesa_delivery
                 FROM 
-                    load_hesa_23056_student_programs t2
+                    load_hesa_23056_20250331_student_programs t2
                 JOIN 
                     stage_hesa_nn056_students s2
                     ON s2.student_guid = t2.student_guid

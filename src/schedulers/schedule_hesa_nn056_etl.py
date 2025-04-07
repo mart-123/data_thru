@@ -9,12 +9,12 @@ from src.etl.core.etl_utils import get_config
 def run_extract_scripts(config):
     print("Running extracts...")
     transform_scripts = [
-        ("extract_hesa_nn056_students.py", "22056"),
-        ("extract_hesa_nn056_demographics.py", "22056"),
-        ("extract_hesa_nn056_student_programs.py", "22056"),
-        ("extract_hesa_nn056_students.py", "23056"),
-        ("extract_hesa_nn056_demographics.py", "23056"),
-        ("extract_hesa_nn056_student_programs.py", "23056")
+        ("extract_hesa_nn056_students.py", "22056_20240331"),
+        ("extract_hesa_nn056_demographics.py", "22056_20240331"),
+        ("extract_hesa_nn056_student_programs.py", "22056_20240331"),
+        ("extract_hesa_nn056_students.py", "23056_20250331"),
+        ("extract_hesa_nn056_demographics.py", "23056_20250331"),
+        ("extract_hesa_nn056_student_programs.py", "23056_20250331")
     ]
 
     all_success = True
@@ -38,45 +38,42 @@ def run_extract_scripts(config):
 @task
 def run_load_scripts(config):
     print("Running loads...")
-    load_scripts = [
-        ("load_hesa_nn056_students.py", "22056"),
-        ("load_hesa_nn056_student_programs.py", "22056"),
-        ("load_hesa_nn056_demographics.py", "22056"),
-        ("load_hesa_nn056_lookup_disability.py", "22056"),
-        ("load_hesa_nn056_lookup_ethnicity.py", "22056"),
-        ("load_hesa_nn056_lookup_genderid.py", "22056"),
-        ("load_hesa_nn056_lookup_religion.py", "22056"),
-        ("load_hesa_nn056_lookup_sexid.py", "22056"),
-        ("load_hesa_nn056_lookup_sexort.py", "22056"),
-        ("load_hesa_nn056_lookup_trans.py", "22056"),
-        ("load_hesa_nn056_lookup_z_ethnicgrp1.py", "22056"),
-        ("load_hesa_nn056_lookup_z_ethnicgrp2.py", "22056"),
-        ("load_hesa_nn056_lookup_z_ethnicgrp3.py", "22056"),
-        ("load_hesa_nn056_students.py", "23056"),
-        ("load_hesa_nn056_student_programs.py", "23056"),
-        ("load_hesa_nn056_demographics.py", "23056"),
-        ("load_hesa_nn056_lookup_disability.py", "23056"),
-        ("load_hesa_nn056_lookup_ethnicity.py", "23056"),
-        ("load_hesa_nn056_lookup_genderid.py", "23056"),
-        ("load_hesa_nn056_lookup_religion.py", "23056"),
-        ("load_hesa_nn056_lookup_sexid.py", "23056"),
-        ("load_hesa_nn056_lookup_sexort.py", "23056"),
-        ("load_hesa_nn056_lookup_trans.py", "23056"),
-        ("load_hesa_nn056_lookup_z_ethnicgrp1.py", "23056"),
-        ("load_hesa_nn056_lookup_z_ethnicgrp2.py", "23056"),
-        ("load_hesa_nn056_lookup_z_ethnicgrp3.py", "23056")
+
+    # Process main load tables
+    main_nn056_loads = [
+        ("load_hesa_nn056_students.py", "22056_20240331"),
+        ("load_hesa_nn056_student_programs.py", "22056_20240331"),
+        ("load_hesa_nn056_demographics.py", "22056_20240331"),
+        ("load_hesa_nn056_students.py", "23056_20250331"),
+        ("load_hesa_nn056_student_programs.py", "23056_20250331"),
+        ("load_hesa_nn056_demographics.py", "23056_20250331"),
     ]
 
     success = True
-    for script, delivery_code in load_scripts:
+    for script, delivery_code in main_nn056_loads:
         script_path = f"{config['load_script_dir']}/{script}"
-        result = subprocess.run(["python3", script_path, delivery_code],
-                                capture_output=True, text=True)
+        result = subprocess.run(["python3", script_path, delivery_code], capture_output=True, text=True)
 
         if result.returncode != 0:
             print(f"Error in {script}: {result.stderr}")
             success = False
             break
+
+    # Process look-up load tables
+    nn056_lookups = ["DISABILITY", "ETHNICITY", "GENDERID", "RELIGION", 
+                     "SEXID", "SEXORT", "TRANS", "Z_ETHNICGRP1", "Z_ETHNICGRP2", "Z_ETHNICGRP3"]
+
+    nn056_deliveries = ["22056_20240331", "23056_20250331"]
+
+    for lookup_name in nn056_lookups:
+        for delivery_code in nn056_deliveries:
+            script_path = f"{config['load_script_dir']}/load_hesa_nn056_lookup_table.py"
+            result = subprocess.run(["python3", script_path, delivery_code, lookup_name], capture_output=True, text=True)
+
+            if result.returncode != 0:
+                print(f"Error in {script}: {result.stderr}")
+                success = False
+                break
 
     if success:
         print("Loads completed successfully")

@@ -43,7 +43,7 @@ def generate_create_statements():
         ethnicity_grp3 VARCHAR(3),
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, student_guid)
         )
         COMMENT='Student records delivered from HESA nn056 schema';
@@ -57,7 +57,7 @@ def generate_create_statements():
         fees_paid CHAR(1) COMMENT 'Indicates whether fees have been paid for the academic session',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, student_guid, program_guid)
         )
         COMMENT='Student-program links delivered from HESA nn056 schema';
@@ -70,7 +70,7 @@ def generate_create_statements():
         program_name VARCHAR(100) COMMENT 'The program name that will appear on award certificate',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, program_guid)
         )
         COMMENT='Student-program links, re-normalised (CSV from hesa was denormalised)';
@@ -82,7 +82,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Human-readable description relating to the lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for DISABILTIY codes';
@@ -94,7 +94,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for ETHNICITY code';
@@ -106,7 +106,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for GENDERID code, denoting whether student identifies with birth-registered sex';
@@ -118,7 +118,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for RELIGION code';
@@ -130,7 +130,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for SEXID code';
@@ -142,7 +142,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for SEXORT code';
@@ -154,7 +154,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for TRANS code';
@@ -166,7 +166,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for Z_ETHNICGRP1';
@@ -178,7 +178,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for Z_ETHNICGRP2';
@@ -190,7 +190,7 @@ def generate_create_statements():
         label VARCHAR(400) COMMENT 'Description for lookup code',
         insert_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
         source_file VARCHAR(250) COMMENT 'File from which data was loaded',
-        hesa_delivery VARCHAR(10) COMMENT 'Originating HESA delivery',
+        hesa_delivery VARCHAR(20) COMMENT 'Originating HESA delivery',
         PRIMARY KEY (hesa_delivery, code)
         )
         COMMENT='HESA-provided lookup for Z_ETHNICGRP3';

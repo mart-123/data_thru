@@ -1,11 +1,18 @@
 import os
 import sys
+from src.etl.core.etl_utils import get_config
 from src.etl.core.CsvTableCopier import CsvTableCopier
 
 def main():
     """Set generic config and process-specific additional (filenames, etc)"""
     delivery_code = sys.argv[1]
+
+    # Fully qualified source file path
+    config = get_config()
     source_file = f"hesa_{delivery_code}_student_programs_transformed.csv"
+    source_path = os.path.join(config['transformed_dir'], delivery_code, source_file)
+
+    # Target table and column name mappings
     target_table = f"load_hesa_{delivery_code}_student_programs"
     column_mappings = {"student_guid": "student_guid",
                     "email": "email",
@@ -16,7 +23,7 @@ def main():
                     "fees_paid": "fees_paid"}
 
     script_name = os.path.basename(__file__)
-    table_copier = CsvTableCopier("transformed", source_file, target_table, column_mappings, script_name)
+    table_copier = CsvTableCopier(source_path, target_table, column_mappings, script_name)
     table_copier.transfer_data()
 
 

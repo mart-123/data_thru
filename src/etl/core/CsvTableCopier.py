@@ -9,10 +9,10 @@ class CsvTableCopier():
 
     Usage: instantiate and then call transfer_data.
     """
-    def __init__(self, source_type: str, source_file: str, target_table: str, column_mappings: dict, caller_name: str = None):
+    def __init__(self, source_path: str, target_table: str,
+                 column_mappings: dict, caller_name: str = None):
         """Constructor for CsvTableCopier object. Parameters:
-            - source_type: Type of source ('lookup' or 'transformed')
-            - source_file : filename (recorded in 'source' column of table)
+            - source_path : fully qualified path of source CSV file
             - target_table : table to which data is written
             - column_mappings : dictionary of column name pairs (csv col: table col)
             - caller_name : name of the calling script/module (for logging)
@@ -21,17 +21,9 @@ class CsvTableCopier():
         script_name = caller_name or self.__class__.__name__
         set_up_logging(self.config, script_name)
 
-        self.config["source_file"] = source_file
+        self.config["source_path"] = source_path
         self.config["target_table"] = target_table
         self.config["column_mappings"] = column_mappings
-
-        # Build full file path, defaulting to 'transformed' directory.
-        if source_type == 'lookup':
-            self.config["source_path"] = os.path.join(self.config["lookups_dir"], source_file)
-        elif source_type == 'transformed':
-            self.config["source_path"] = os.path.join(self.config["transformed_dir"], source_file)
-        else:
-            self.config["source_path"] = os.path.join(self.config["transformed_dir"], source_file)
 
 
     def _read_in_chunks(self, chunk_size=200):
@@ -85,8 +77,9 @@ class CsvTableCopier():
             # Add "source file" column to target columns list and
             # add corresponding source filename to value row.
             target_cols.append("source_file")
+            source_file = os.path.basename(self.config["source_path"])
             for row in data_for_insert:
-                row.append(self.config["source_file"])
+                row.append(source_file)
 
             # Setup insert command (with value placeholders)
             columns = ", ".join(target_cols)
@@ -106,7 +99,7 @@ class CsvTableCopier():
 
 
     def transfer_data(self):
-        """Main logic, loads demographic data into SQL db."""
+        """Main method: gets config, clears down target, copies data."""
         # Declare here so guaranteed available in except/finally blocks
         conn = None
         cursor = None
