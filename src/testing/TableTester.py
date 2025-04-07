@@ -10,7 +10,7 @@ class TableTester():
     """
     
     def __init__(self, target_table: str, column_mappings: dict,
-                 source_csv: str = "", source_csv_type: str = "", source_table: str = "",
+                 source_path: str = "", source_table: str = "",
                  caller_name: str = None):
         """Constructor with source and target details provided as arguments.
 
@@ -19,8 +19,7 @@ class TableTester():
             Args:
                 target_table: Table whose contents are being verified.
                 column_mappings: Dictionary mapping source column names to target column names.
-                source_csv: CSV filename if target was loaded from transformed CSV.
-                source_csv_type: Indicates from which directory to read CSV file.
+                source_path: fully qualified path of transformed CSV file if target was loaded from one.
                 source_table: Source table if target was loaded from another table.
                 caller_name: Name of script that instantiated this class. Used in logging messages.
             
@@ -37,25 +36,12 @@ class TableTester():
 
         # Store source/target details
         self.source_table = source_table
-        self.source_csv = source_csv
+        self.source_path = source_path
         self.target_table = target_table
 
         # Store column mappings (converted to lowercase to support
         # vendor-supplied CSV files containing capitalised column names).
         self.column_mappings = {k.lower(): v.lower() for k, v in column_mappings.items()}
-
-        # Build filepath for source CSV file if provided.
-        if source_csv:
-            if source_csv_type == 'lookup':
-                self.source_csv_path = os.path.join(self.config["lookups_dir"], source_csv)
-            elif source_csv_type == 'transformed':
-                self.source_csv_path = os.path.join(self.config["transformed_dir"], source_csv)
-            elif source_csv_type == 'expected':
-                self.source_csv_path = os.path.join(self.config["expected_dir"], source_csv)
-            else:
-                self.source_csv_path = os.path.join(self.config["transformed_dir"], source_csv)
-        else:
-            self.source_csv_path = ""
 
 
     def _read_table(self, conn, table_name: str, column_names: list):
@@ -125,7 +111,7 @@ class TableTester():
         # Convert column names to lowercase (to support key-based row matching)
         df.columns = [col.lower() for col in df.columns]
 
-        logging.info(f"Read {len(df)} rows from {self.source_csv_path}")
+        logging.info(f"Read {len(df)} rows from {self.source_path}")
         return df
 
 
@@ -230,8 +216,8 @@ class TableTester():
 
             # Get source data
             source_df = None
-            if self.source_csv:
-                source_df = self._read_csv(self.source_csv_path)
+            if self.source_path:
+                source_df = self._read_csv(self.source_path)
             else:
                 source_columns = list(self.column_mappings.keys())
                 source_df = self._read_table(conn, self.source_table, source_columns)

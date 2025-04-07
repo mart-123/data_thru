@@ -19,20 +19,20 @@ def run_etl_script(etl_script_name):
 def main():
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)
-    source_csv = "expected_stage_hesa_nn056_DISABILITY.csv"
+    source_file = "expected_stage_hesa_nn056_DISABILITY.csv"
+    source_path = os.path.join(config['expected_dir'], source_file)
     target_table = "stage_hesa_nn056_lookup_disability"
     column_mappings = {
-        "Code": "code",
-        "Delivery": "hesa_delivery",
-        "Label": "label"
+        "code": "code",
+        "label": "label",
+        "hesa_delivery": "hesa_delivery"
         }
 
     # Call test suite
     table_tester = TableTester(
                                target_table=target_table,
                                column_mappings=column_mappings,
-                               source_csv=source_csv,
-                               source_csv_type="expected",
+                               source_path=source_path,
                                source_table="",
                                caller_name=this_script_name)
     

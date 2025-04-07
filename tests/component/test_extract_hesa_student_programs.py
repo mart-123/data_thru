@@ -7,8 +7,8 @@ config = get_config()
 test_results = []
 
 
-def run_etl_process(script_name: str):
-    result = subprocess.run(["python3", f"{config['extract_script_dir']}/{script_name}"],
+def run_etl_process(script_name: str, delivery_code: str):
+    result = subprocess.run(["python3", f"{config['extract_script_dir']}/{script_name}", delivery_code],
                         capture_output=True, text=True)
 
     if result.returncode != 0:
@@ -17,24 +17,24 @@ def run_etl_process(script_name: str):
         print(f"script {script_name} completed successfully")
 
 
-def get_transformed_csv(file_name: str):
+def get_transformed_csv(file_name: str, delivery_code: str):
     """Returns a DataFrame of the transformed CSV file"""
-    file_path = os.path.join(config['transformed_dir'], file_name)
+    file_path = os.path.join(config['transformed_dir'], delivery_code, file_name)
     csv_df = pd.read_csv(file_path, dtype=str)
     return csv_df
 
 
-def get_bad_data_csv(file_name: str):
+def get_bad_data_csv(file_name: str, delivery_code: str):
     """Returns a DataFrame of the bad data CSV file"""
-    file_path = os.path.join(config['bad_data_dir'], file_name)
+    file_path = os.path.join(config['bad_data_dir'], delivery_code, file_name)
     csv_df = pd.read_csv(file_path, dtype=str)
     return csv_df
 
 
 def tc001_transformed_row_count(csv_df):
-    test_desc = "Transformed file contains 5 rows"
+    test_desc = "Transformed file contains 6 rows"
 
-    if len(csv_df) == 5:
+    if len(csv_df) == 6:
         return True, test_desc
     else:
         return False, test_desc
@@ -95,7 +95,7 @@ def tc004_good_row_all_cols_copied(csv_df):
         "program_guid": "0A769638-3799-86C6-BBBB-38BEBE2487D1",
         "program_code": "ENG10001",
         "program_name": "BA English Lit",
-        "enrol_date": "2024-10-04",
+        "enrol_date": "2022-10-04",
         "fees_paid": "N"
     }
 
@@ -272,11 +272,19 @@ def print_results():
 
 
 def main():
-    run_etl_process("extract_hesa_student_programs.py")
-    transformed_csv = get_transformed_csv("student_programs_transformed.csv")
-    bad_data_csv = get_bad_data_csv("student_programs_bad_data.csv")
-    run_transformed_file_tests(transformed_csv)
-    run_bad_data_tests(bad_data_csv)
+    # Set up basic test parameters
+    delivery_code = "22056_20240331"
+    transformed_filename = f"hesa_{delivery_code}_student_programs_transformed.csv"
+    bad_data_filename = f"hesa_{delivery_code}_student_programs_bad_data.csv"
+
+    # Run ETL process and read output files into DataFrames
+    run_etl_process("extract_hesa_nn056_student_programs.py", delivery_code)
+    transformed_df = get_transformed_csv(transformed_filename, delivery_code)
+    bad_data_df = get_bad_data_csv(bad_data_filename, delivery_code)
+
+    # Run test cases against the two DataFrames
+    run_transformed_file_tests(transformed_df)
+    run_bad_data_tests(bad_data_df)
     print_results()
 
 

@@ -22,8 +22,9 @@ def main():
     run_etl_script()
 
     # Declare parameters for test suite
-    source_csv = "student_programs_transformed.csv"
-    target_table = "load_hesa_22056_student_programs"
+    source_file = "hesa_22056_20240331_student_programs_transformed.csv"
+    source_path = os.path.join(config['transformed_dir'], "22056_20240331", source_file)
+    target_table = "load_hesa_22056_20240331_student_programs"
     column_mappings = {"student_guid": "student_guid",
                     "email": "email",
                     "program_guid": "program_guid",
@@ -38,8 +39,7 @@ def main():
     table_tester = TableTester(
                                target_table=target_table,
                                column_mappings=column_mappings,
-                               source_csv=source_csv,
-                               source_csv_type="transformed",
+                               source_path=source_path,
                                source_table="",
                                caller_name=this_script_name)
     

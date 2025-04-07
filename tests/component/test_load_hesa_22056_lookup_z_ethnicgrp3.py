@@ -23,8 +23,9 @@ def main():
 
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)
-    source_csv = "hesa_22056_Z_ETHNICGRP3.csv"
-    target_table = "load_hesa_22056_lookup_z_ethnicgrp3"
+    source_file = "hesa_22056_20240331_lookup_Z_ETHNICGRP3.csv"
+    source_path = os.path.join(config['deliveries_dir'], "22056_20240331", source_file)
+    target_table = "load_hesa_22056_20240331_lookup_z_ethnicgrp3"
     column_mappings = {
         "Code": "code",
         "Label": "label"
@@ -34,8 +35,7 @@ def main():
     table_tester = TableTester(
                                target_table=target_table,
                                column_mappings=column_mappings,
-                               source_csv=source_csv,
-                               source_csv_type="lookup",
+                               source_path=source_path,
                                source_table="",
                                caller_name=this_script_name)
     
