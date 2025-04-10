@@ -7,11 +7,10 @@
             "scripts": "src/etl"
         },
         "data": {
-            "extracts": "extracts",
+            "deliveries": "deliveries",
             "bad_data": "bad_data",
             "transformed": "transformed",
-            "expected": "expected",
-            "lookups": "lookups"
+            "expected": "expected"
         },
         "scripts": {
             "extract": "extract",
