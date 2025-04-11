@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import logging
 import datetime
-from src.etl.core.etl_utils import get_config, set_up_logging, connect_to_db
+from ingest.core.etl_utils import get_config, set_up_logging, connect_to_db
 
 class TableTester():
     """
