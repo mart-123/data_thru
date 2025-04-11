@@ -1,0 +1,34 @@
+version: 2
+
+sources:
+- name: hesa
+  database: college_dev
+  schema: college_dev
+  tables:
+      - name: load_hesa_22056_20240331_students
+      - name: load_hesa_22056_20240331_student_programs
+      - name: load_hesa_22056_20240331_demographics
+      - name: load_hesa_22056_20240331_lookup_disability
+      - name: load_hesa_22056_20240331_lookup_ethnicity
+      - name: load_hesa_22056_20240331_lookup_genderid
+      - name: load_hesa_22056_20240331_lookup_religion
+      - name: load_hesa_22056_20240331_lookup_sexid
+      - name: load_hesa_22056_20240331_lookup_sexort
+      - name: load_hesa_22056_20240331_lookup_trans
+      - name: load_hesa_22056_20240331_lookup_z_ethnicgrp1
+      - name: load_hesa_22056_20240331_lookup_z_ethnicgrp2
+      - name: load_hesa_22056_20240331_lookup_z_ethnicgrp3
+
+      - name: load_hesa_23056_20250331_students
+      - name: load_hesa_23056_20250331_student_programs
+      - name: load_hesa_23056_20250331_demographics
+      - name: load_hesa_23056_20250331_lookup_disability
+      - name: load_hesa_23056_20250331_lookup_ethnicity
+      - name: load_hesa_23056_20250331_lookup_genderid
+      - name: load_hesa_23056_20250331_lookup_religion
+      - name: load_hesa_23056_20250331_lookup_sexid
+      - name: load_hesa_23056_20250331_lookup_sexort
+      - name: load_hesa_23056_20250331_lookup_trans
+      - name: load_hesa_23056_20250331_lookup_z_ethnicgrp1
+      - name: load_hesa_23056_20250331_lookup_z_ethnicgrp2
+      - name: load_hesa_23056_20250331_lookup_z_ethnicgrp3
