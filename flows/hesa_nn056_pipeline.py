@@ -114,6 +114,36 @@ def run_stage_scripts(config):
 
 
 @task
+def run_dimension_scripts(config):
+    print("Running DBT dimension models...")
+
+    # Get start time for duration calculation
+    start_time = time.time()
+
+    # Run DBT dimension scripts
+    result = subprocess.run(
+        ["dbt", "run", "--models", "dimensions"],
+        cwd=config["dbt_project_dir"],
+        capture_output=True, text=True)
+
+    # Calculate execution time
+    execution_time = time.time() - start_time
+    print(f"DBT dimensions ran for {execution_time} seconds")
+
+    # Show DBT output for debugging
+    print(f"DBT output:\n{result.stdout}")
+
+    # Report errors
+    if result.returncode != 0:
+        print(f"Error in DBT dimensions: {result.stderr}")
+        return False
+
+    # Report success
+    print("DBT dimensions completed successfully")
+    return True
+
+
+@task
 def get_config_task():
     return get_config()
 
@@ -131,8 +161,13 @@ def etl_flow():
         load_success = run_load_scripts(config, wait_for=[transform_success])
         if load_success:
             stage_success = run_stage_scripts(config, wait_for=[load_success])
+            if stage_success:
+                dimension_success = run_dimension_scripts(config, wait_for=[stage_success])
     
-    return {"transform success": transform_success, "load success": load_success, "stage success": stage_success}
+    return {"transform success": transform_success,
+            "load success": load_success,
+            "stage success": stage_success,
+            "dimension success": dimension_success}
 
 
 def main():
