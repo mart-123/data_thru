@@ -1,7 +1,7 @@
 import os
 import sys
 from ingest.core.CsvTableCopier import CsvTableCopier
-from ingest.core.etl_utils import get_config
+from utils.data_platform_core import get_config
 
 def main():
     """Set generic config and process-specific additional (filenames, etc)"""

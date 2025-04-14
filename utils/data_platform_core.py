@@ -1,3 +1,11 @@
+"""
+ETL utility module providing core functions for HESA data warehouse, including:
+        - Config loading (from .env files and JSON configs)
+        - Logging setup and configuration
+        - Database connection handling
+        - Host IP retrieval for WSL2 environments
+        - Date validation utilities
+"""
 import logging
 import os
 import os.path
@@ -74,6 +82,7 @@ def get_config():
         logs_path = os.path.join(base_dir, json_config["paths"]["base"]["logs"])
         data_path = os.path.join(base_dir, json_config["paths"]["base"]["data"])
         scripts_path = os.path.join(base_dir, json_config["paths"]["base"]["scripts"])
+        dbt_path = os.path.join(base_dir, json_config["paths"]["base"]["dbt"])
 
         # 5. Declare log directories/files (using environment name parameter)
         env = json_config["environment"]
@@ -92,10 +101,7 @@ def get_config():
         # 7. Declare script directories
         config["extract_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["extract"])
         config["load_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["load"])
-        config["stage_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["stage"])
-        config["dim_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["dim"])
-        config["fact_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["fact"])
-        config["view_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["view"])
+        config["dbt_project_dir"] = dbt_path
 
         # Get database settings
 #        config["db_host_ip"] = get_windows_host_ip() # only for windows-hosted MySQL connecting from WSL2

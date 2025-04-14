@@ -6,7 +6,7 @@ take a merge of multiple load tables each from 22056 onwards under the nn056 sch
 import mysql.connector
 import traceback
 import mysql.connector.cursor
-from src.etl.core.etl_utils import get_config, set_up_logging, connect_to_db
+from utils.data_platform_core import get_config, set_up_logging, connect_to_db
 
 def init():
     config = get_config()

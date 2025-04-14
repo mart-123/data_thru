@@ -4,7 +4,8 @@
         "base": {
             "logs": "logs",
             "data": "data_test",
-            "scripts": "src/etl"
+            "scripts": "ingest",
+            "dbt": "dbt"
         },
         "data": {
             "deliveries": "deliveries",
@@ -14,11 +15,7 @@
         },
         "scripts": {
             "extract": "extract",
-            "load": "load",
-            "stage": "stage",
-            "dim": "dim",
-            "fact": "fact",
-            "view": "view"
+            "load": "load"
         }
     }
 }

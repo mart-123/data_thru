@@ -1,6 +1,6 @@
 import os
 import sys
-from ingest.core.etl_utils import get_config
+from utils.data_platform_core import get_config
 from ingest.core.CsvTableCopier import CsvTableCopier
 
 def main():
@@ -16,7 +16,7 @@ def main():
     source_path = os.path.join(config['transformed_dir'], delivery_code, source_file)
 
     # Target table and column name mappings
-    target_table = f"load_hesa_{delivery_code}_student_demographics"
+    target_table = f"load_hesa_{delivery_code}_demographics"
     column_mappings = {
         "student_guid": "student_guid",
         "ethnicity": "ethnicity",

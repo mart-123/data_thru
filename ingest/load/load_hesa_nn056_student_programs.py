@@ -1,6 +1,6 @@
 import os
 import sys
-from ingest.core.etl_utils import get_config
+from utils.data_platform_core import get_config
 from ingest.core.CsvTableCopier import CsvTableCopier
 
 def main():

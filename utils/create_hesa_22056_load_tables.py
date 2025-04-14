@@ -8,7 +8,7 @@ load tables will need to be added to merge logic for loading the nn056 stage tab
 import mysql.connector
 import traceback
 import mysql.connector.cursor
-from src.etl.core.etl_utils import get_config, set_up_logging, connect_to_db
+from utils.data_platform_core import get_config, set_up_logging, connect_to_db
 
 def init():
     config = get_config()
@@ -56,9 +56,9 @@ def generate_create_statements():
                 )
                 COMMENT='Student-program links combined with program details (i.e. denormalised)';
             """,
-        'load_hesa_22056_20240331_student_demographics':
+        'load_hesa_22056_20240331_demographics':
             """
-            CREATE TABLE load_hesa_22056_20240331_student_demographics (
+            CREATE TABLE load_hesa_22056_20240331_demographics (
                 student_guid CHAR(36),
                 ethnicity VARCHAR(3),
                 gender VARCHAR(3),
@@ -72,7 +72,8 @@ def generate_create_statements():
                 load_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of insert',
                 source_file VARCHAR(250) COMMENT 'File from which data was loaded',
                 hesa_delivery VARCHAR(20) DEFAULT '22056_20240331' COMMENT 'Originating HESA delivery'
-                );
+                )
+                COMMENT='Demographic information per student';
             """,
         'load_hesa_22056_20240331_lookup_disability':
             """

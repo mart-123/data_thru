@@ -1,6 +1,6 @@
 import pandas as pd
 import logging
-from ingest.core.etl_utils import get_config, set_up_logging, connect_to_db
+from utils.data_platform_core import get_config, set_up_logging, connect_to_db
 
 class TableCopier():
     """

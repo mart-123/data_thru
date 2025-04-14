@@ -3,7 +3,7 @@ import subprocess
 from prefect import task, flow
 from prefect.tasks import task_input_hash
 from datetime import timedelta
-from ingest.core.etl_utils import get_config
+from utils.data_platform_core import get_config
 
 @task
 def run_extract_scripts(config):
@@ -85,38 +85,32 @@ def run_load_scripts(config):
 
 @task
 def run_stage_scripts(config):
-    print("Running stages...")
-    stage_scripts = [
-        "stage_hesa_nn056_students.py",
-        "stage_hesa_nn056_programs.py",
-        "stage_hesa_nn056_student_programs.py",
-        "stage_hesa_nn056_lookup_disability.py",
-        "stage_hesa_nn056_lookup_ethnicity.py",
-        "stage_hesa_nn056_lookup_genderid.py",
-        "stage_hesa_nn056_lookup_religion.py",
-        "stage_hesa_nn056_lookup_sexid.py",
-        "stage_hesa_nn056_lookup_sexort.py",
-        "stage_hesa_nn056_lookup_trans.py",
-        "stage_hesa_nn056_lookup_z_ethnicgrp1.py",
-        "stage_hesa_nn056_lookup_z_ethnicgrp2.py",
-        "stage_hesa_nn056_lookup_z_ethnicgrp3.py"
-    ]
+    print("Running DBT staging models...")
 
-    success = True
-    for script in stage_scripts:
-        result = subprocess.run(["python3", f"{config['stage_script_dir']}/{script}"],
-                                capture_output=True, text=True)
+    # Get start time for duration calculation
+    start_time = time.time()
 
-        if result.returncode != 0:
-            print(f"Error in {script}: {result.stderr}")
-            success = False
-            break
+    # Run DBT staging scripts
+    result = subprocess.run(
+        ["dbt", "run", "--models", "staging"],
+        cwd=config["dbt_project_dir"],
+        capture_output=True, text=True)
 
-    if success:
-        print("Stages completed successfully")
-    else:
-        print("Some stages failed")
-    return success
+    # Calculate execution time
+    execution_time = time.time() - start_time
+    print(f"DBT staging ran for {execution_time} seconds")
+
+    # Show DBT output for debugging
+    print(f"DBT output:\n{result.stdout}")
+
+    # Report errors
+    if result.returncode != 0:
+        print(f"Error in DBT staging: {result.stderr}")
+        return False
+
+    # Report success
+    print("DBT staging completed successfully")
+    return True
 
 
 @task

@@ -16,4 +16,4 @@ SELECT DISTINCT
     t2.source_file, 
     t2.hesa_delivery
 FROM 
-    {{ source('hesa', 'load_hesa_23056_20250331_student_programs') }} t2;
+    {{ source('hesa', 'load_hesa_23056_20250331_student_programs') }} t2

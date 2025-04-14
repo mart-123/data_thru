@@ -34,5 +34,4 @@ JOIN
 JOIN 
     {{ ref('stage_hesa_nn056_programs') }} p2
     ON p2.program_guid = t2.program_guid
-    AND p2.hesa_delivery = t2.hesa_delivery;       
-
+    AND p2.hesa_delivery = t2.hesa_delivery
