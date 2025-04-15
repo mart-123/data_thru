@@ -35,4 +35,6 @@ models:
       +materialized: table
     dimensions:
       +materialized: table
+    facts:
+      +materialized: table
     views:

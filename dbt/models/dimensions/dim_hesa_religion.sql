@@ -2,7 +2,7 @@
 -- Create dimension of religion codes
 {{ config(
     materialized='table',
-    unique_key='religion_id',
+    unique_key='dim_hesa_religion_key',
     tags=['dimension', 'hesa', 'lookup'])
 }}
 
@@ -16,7 +16,7 @@ WITH source_data AS (
 )
 
 SELECT
-    CONCAT('REL_', code, '_', hesa_delivery) as religion_id,
+    CONCAT('REL_', code, '_', hesa_delivery) as dim_hesa_religion_key,
     code as religion_code, -- Business key of HESA look-up
     label as religion_label, -- Human-readable description
     hesa_delivery, -- HESA delivery version

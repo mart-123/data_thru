@@ -2,7 +2,7 @@
 -- Create dimension of ethnicity codes
 {{ config(
     materialized='table',
-    unique_key='ethnicity_id',
+    unique_key='dim_hesa_ethnicity_key',
     tags=['dimension', 'hesa', 'lookup'])
 }}
 
@@ -16,7 +16,7 @@ WITH source_data AS (
 )
 
 SELECT
-    CONCAT('ETH_', code, '_', hesa_delivery) as ethnicity_id,
+    CONCAT('ETH_', code, '_', hesa_delivery) as dim_hesa_ethnicity_key,
     code as ethnicity_code, -- Business key of HESA look-up
     label as ethnicity_label, -- Human-readable description
     hesa_delivery, -- HESA delivery version

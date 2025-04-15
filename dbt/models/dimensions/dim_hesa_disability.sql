@@ -2,7 +2,7 @@
 -- Create dimension of disability codes
 {{ config(
     materialized='table',
-    unique_key='disability_id',
+    unique_key='dim_hesa_disability_key',
     tags=['dimension', 'hesa', 'lookup'])
 }}
 
@@ -16,7 +16,7 @@ WITH source_data AS (
 )
 
 SELECT
-    CONCAT('DIS_', code, '_', hesa_delivery) as disability_id,
+    CONCAT('DIS_', code, '_', hesa_delivery) as dim_hesa_disability_key,
     code as disability_code, -- Business key of HESA look-up
     label as disability_label, -- Human-readable description
     hesa_delivery, -- HESA delivery version

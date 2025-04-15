@@ -2,7 +2,7 @@
 -- Create dimension of z_ethnicgrp1 codes
 {{ config(
     materialized='table',
-    unique_key='z_ethnicgrp1_id',
+    unique_key='dim_hesa_z_ethnicgrp1_key',
     tags=['dimension', 'hesa', 'lookup'])
 }}
 
@@ -16,7 +16,7 @@ WITH source_data AS (
 )
 
 SELECT
-    CONCAT('EG1_', code, '_', hesa_delivery) as z_ethnicgrp1_id,
+    CONCAT('EG1_', code, '_', hesa_delivery) as dim_hesa_z_ethnicgrp1_key,
     code as z_ethnicgrp1_code, -- Business key of HESA look-up
     label as z_ethnicgrp1_label, -- Human-readable description
     hesa_delivery, -- HESA delivery version

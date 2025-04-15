@@ -2,7 +2,7 @@
 -- Create dimension of sexort codes
 {{ config(
     materialized='table',
-    unique_key='sexort_id',
+    unique_key='dim_hesa_sexort_key',
     tags=['dimension', 'hesa', 'lookup'])
 }}
 
@@ -16,7 +16,7 @@ WITH source_data AS (
 )
 
 SELECT
-    CONCAT('SXO_', code, '_', hesa_delivery) as sexort_id,
+    CONCAT('SXO_', code, '_', hesa_delivery) as dim_hesa_sexort_key,
     code as sexort_code, -- Business key of HESA look-up
     label as sexort_label, -- Human-readable description
     hesa_delivery, -- HESA delivery version

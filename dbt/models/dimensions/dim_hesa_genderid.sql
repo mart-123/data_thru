@@ -2,7 +2,7 @@
 -- Create dimension of genderid codes
 {{ config(
     materialized='table',
-    unique_key='genderid_id',
+    unique_key='dim_hesa_genderid_key',
     tags=['dimension', 'hesa', 'lookup'])
 }}
 
@@ -16,7 +16,7 @@ WITH source_data AS (
 )
 
 SELECT
-    CONCAT('GID_', code, '_', hesa_delivery) as genderid_id,
+    CONCAT('GID_', code, '_', hesa_delivery) as dim_hesa_genderid_key,
     code as genderid_code, -- Business key of HESA look-up
     label as genderid_label, -- Human-readable description
     hesa_delivery, -- HESA delivery version
