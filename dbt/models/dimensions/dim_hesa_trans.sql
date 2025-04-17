@@ -16,7 +16,7 @@ WITH source_data AS (
 )
 
 SELECT
-    CONCAT('TRN_', code, '_', hesa_delivery) as dim_hesa_trans_key,
+    CONCAT('TRA_', code, '_', hesa_delivery) as dim_hesa_trans_key,
     code as trans_code, -- Business key of HESA look-up
     label as trans_label, -- Human-readable description
     hesa_delivery, -- HESA delivery version

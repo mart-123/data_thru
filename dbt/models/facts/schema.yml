@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: fact_hesa_student_programs
+    description: ""
+    columns:
+      - name: dim_hesa_student_key
+        data_type: varchar(61)
+        description: ""
+
+      - name: dim_hesa_program_key
+        data_type: varchar(61)
+        description: ""
+
+      - name: hesa_delivery
+        data_type: varchar(20)
+        description: ""
+
+      - name: enrol_date
+        data_type: date
+        description: ""
+
+      - name: fees_paid
+        data_type: char(1)
+        description: ""
+
+      - name: fees_paid_bool
+        data_type: int
+        description: ""
+
+      - name: source_file
+        data_type: varchar(250)
+        description: ""

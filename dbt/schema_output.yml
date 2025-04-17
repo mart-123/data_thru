@@ -1,0 +1,17 @@
+18:02:29  Running with dbt=1.7.19
+18:02:29  Registered adapter: mysql=1.7.0
+18:02:29  Encountered an error:
+Parsing Error
+  Error reading dbt_hesa_project: dimensions/schema_auto.yml - Runtime Error
+    Syntax error near line 2
+    ------------------------------
+    1  | 17:59:10  Running with dbt=1.7.19
+    2  | 17:59:10  Registered adapter: mysql=1.7.0
+    3  | 17:59:10  Encountered an error:
+    4  | Parsing Error
+    5  |   Error reading dbt_hesa_project: dimensions/schema_auto.yml - Runtime Error
+    
+    Raw Error:
+    ------------------------------
+    mapping values are not allowed in this context
+      in "<unicode string>", line 2, column 29

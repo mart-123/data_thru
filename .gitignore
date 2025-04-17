@@ -5,10 +5,31 @@ venv_dev/
 logs/
 .env
 docker-compose.yml
+
 # VS Code personal settings
 .vscode/settings.json
+
 # Python bytecode files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+
+# DBT specific
+dbt_packages/
+target/
+.dbt/
+dbt-env/
+dbt_modules/
+logs/
+
+# Secrets and credentials
+profiles.yml
+
+# Temporary files
+.DS_Store
+.ipynb_checkpoints/
+
+# Build and distribution
+*.egg-info/
