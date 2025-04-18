@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: dim_hesa_program
+    description: ""
+    columns:
+      - name: dim_hesa_program_key
+        data_type: varchar(61)
+        description: "Surrogate key, structured PGM_<program_guid>_<hesa_delivery> for human readability"
+
+      - name: program_guid
+        data_type: char(36)
+        description: "HESA unique identifier for program of study"
+
+      - name: program_code
+        data_type: varchar(10)
+        description: "Human-readable code representing program of study (typically a degree course)"
+
+      - name: program_name
+        data_type: varchar(100)
+        description: "HESA description of program of study (typically name of degree)"
+
+      - name: source_file
+        data_type: varchar(250)
+        description: "Name of file from which record originates"
+
+      - name: hesa_delivery
+        data_type: varchar(20)
+        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"

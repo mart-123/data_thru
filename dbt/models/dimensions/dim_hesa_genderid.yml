@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: dim_hesa_genderid
+    description: "Codes/labels provided by HESA for student to indicate their gender identity"
+    columns:
+      - name: dim_hesa_genderid_key
+        data_type: varchar(30)
+        description: "Surrogate key, structured GID_<genderid_code>_<hesa_delivery> for human readability"
+
+      - name: genderid_code
+        data_type: varchar(5)
+        description: "Code representing a gender identity"
+
+      - name: genderid_label
+        data_type: varchar(400)
+        description: "Gender identity label/description"
+
+      - name: hesa_delivery
+        data_type: varchar(20)
+        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"
+
+      - name: source_file
+        data_type: varchar(250)
+        description: "Name of file from which record originates"

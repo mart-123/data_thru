@@ -1,0 +1,102 @@
+version: 2
+
+models:
+  - name: dim_hesa_student
+    description: "Student records with demographic details appended"
+    columns:
+      - name: dim_hesa_student_key
+        data_type: varchar(61)
+        description: "Surrogate key, structured STU_<student_guid>_<hesa_delivery> for human readability"
+
+      - name: student_guid
+        data_type: char(36)
+        description: "HESA-provided unique identifier for a student, persisting through all courses of study"
+
+      - name: first_names
+        data_type: varchar(250)
+        description: "First name(s) derived from simple split of combined 'name' field provided by HESA"
+
+      - name: last_name
+        data_type: varchar(250)
+        description: "Last name derived from final part of combined 'name' field from HESA"
+
+      - name: phone
+        data_type: varchar(250)
+        description: "Main phone number, free-format text with parentheses removed"
+
+      - name: email
+        data_type: varchar(250)
+        description: "Main email address of student"
+
+      - name: dob
+        data_type: date
+        description: "Student date of birth"
+
+      - name: home_addr
+        data_type: varchar(250)
+        description: "House number and street where student resides out of term"
+
+      - name: home_postcode
+        data_type: varchar(50)
+        description: "Postcode where student resides out of term"
+
+      - name: home_country
+        data_type: varchar(100)
+        description: "Country where student resides out of term"
+
+      - name: term_addr
+        data_type: varchar(250)
+        description: "House number and street where student resides during term time"
+
+      - name: term_postcode
+        data_type: varchar(50)
+        description: "Postcode where student resides during term time"
+
+      - name: term_country
+        data_type: varchar(100)
+        description: "Country where student resides during term time"
+
+
+      - name: source_file
+        data_type: varchar(250)
+        description: "Name of file from which record originates"
+
+      - name: hesa_delivery
+        data_type: varchar(20)
+        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"
+
+      - name: ethnicity
+        data_type: varchar(3)
+        description: "Ethnicity of student"
+
+      - name: genderid
+        data_type: varchar(3)
+        description: "Gender identity of student"
+
+      - name: religion
+        data_type: varchar(3)
+        description: "Religion of student"
+
+      - name: sexid
+        data_type: varchar(3)
+        description: "Sexual identity of student"
+
+      - name: sexort
+        data_type: varchar(3)
+        description: "Sexual orientation of student"
+
+      - name: trans
+        data_type: varchar(3)
+        description: "Indicates whether gender identity differs from birth certificate"
+
+      - name: ethnicity_grp1
+        data_type: varchar(3)
+        description: "Broadest ethnicity classification (least detailed grouping)"
+
+      - name: ethnicity_grp2
+        data_type: varchar(3)
+        description: "Intermediate-level ethnicity classification (medium level of detail)"
+
+      - name: ethnicity_grp3
+        data_type: varchar(3)
+        description: "Detailed ethnicity classification (most specific grouping)"

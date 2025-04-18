@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: dim_hesa_sexort
+    description: "Codes/labels provided by HESA for student to indicate their sexual orientation"
+    columns:
+      - name: dim_hesa_sexort_key
+        data_type: varchar(30)
+        description: "Surrogate key, structured SXO_<sexort_code>_<hesa_delivery> for human readability"
+
+      - name: sexort_code
+        data_type: varchar(5)
+        description: "Code representing sexual orientation"
+
+      - name: sexort_label
+        data_type: varchar(400)
+        description: "Sexual orientation name/description"
+
+      - name: hesa_delivery
+        data_type: varchar(20)
+        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"
+
+      - name: source_file
+        data_type: varchar(250)
+        description: "Name of file from which record originates"

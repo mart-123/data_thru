@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: dim_hesa_disability
+    description: "Codes/labels provided by HESA for student to self-report disability categories"
+    columns:
+      - name: dim_hesa_disability_key
+        data_type: varchar(30)
+        description: "Surrogate key, structured DIS_<disability_code>_<hesa_delivery> for human readability"
+
+      - name: disability_code
+        data_type: varchar(5)
+        description: "Code representing a disability category"
+
+      - name: disability_label
+        data_type: varchar(400)
+        description: "Disability category short description"
+
+      - name: hesa_delivery
+        data_type: varchar(20)
+        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"
+
+      - name: source_file
+        data_type: varchar(250)
+        description: "Name of file from which record originates"
+

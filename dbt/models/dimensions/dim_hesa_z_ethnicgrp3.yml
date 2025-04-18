@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: dim_hesa_z_ethnicgrp3
+    description: "HESA-derived ethnicity grouping (level 3 - most detailed grain)"
+    columns:
+      - name: dim_hesa_z_ethnicgrp3_key
+        data_type: varchar(30)
+        description: "Surrogate key, structured EG3_<code>_<hesa_delivery> for human readability"
+
+      - name: z_ethnicgrp3_code
+        data_type: varchar(5)
+        description: "Code representing level 3 ethnicity grouping"
+
+      - name: z_ethnicgrp3_label
+        data_type: varchar(400)
+        description: "Ethnicity grouping (level 3) description"
+
+      - name: hesa_delivery
+        data_type: varchar(20)
+        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"
+
+      - name: source_file
+        data_type: varchar(250)
+        description: "Name of file from which record originates"

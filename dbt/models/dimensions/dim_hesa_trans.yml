@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: dim_hesa_trans
+    description: "Codes/labels provided by HESA for student to indicate their trans status"
+    columns:
+      - name: dim_hesa_trans_key
+        data_type: varchar(30)
+        description: "Surrogate key, structured TRA_<trans_code>_<hesa_delivery> for human readability"
+
+      - name: trans_code
+        data_type: varchar(5)
+        description: "Code representing transgender status"
+
+      - name: trans_label
+        data_type: varchar(400)
+        description: "Transgender status description"
+
+      - name: hesa_delivery
+        data_type: varchar(20)
+        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"
+
+      - name: source_file
+        data_type: varchar(250)
+        description: "Name of file from which record originates"
