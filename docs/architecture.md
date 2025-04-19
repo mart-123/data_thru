@@ -1,17 +1,18 @@
 # Architecture Overview
+This document explains the overall technical architecture of the pipeline.
+
 
 ## Pipeline Components
 
 ```mermaid
 graph TD
-    A[Extract Scripts] -->|CSV Files| B[Load Scripts]
-    B -->|MySQL Tables| C[DBT Staging]
-    C -->|Stage Models| D[DBT Dimensions]
-    D -->|Dimension Tables| E[DBT Facts]
-    F[Prefect Flow] -->|Orchestrates| A
-    F -->|Orchestrates| B
-    F -->|Orchestrates| C
-    F -->|Orchestrates| D
-    F -->|Orchestrates| E
-mermaid```
+    A[Extract Scripts] -->|Cleansed CSV Files| B[Load Scripts]
+    B -->|Load Tables| C[DBT Staging Models]
+    C -->|Stage Tables| D[DBT Fact/Dim Models]
+    D -->|Star Schema| E[BI Reporting]
+    G[Prefect Flow] -->|Orchestrates| A
+    G -->|Orchestrates| B
+    G -->|Orchestrates| C
+    G -->|Orchestrates| D
+```
 

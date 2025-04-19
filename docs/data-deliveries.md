@@ -1,4 +1,7 @@
 # HESA Deliveries
+This document explains the concept of 'HESA Deliveries' and how it is implemented in the HESA Student data pipeline.
+
+## Background
 Universities send an annual student data 'collection' to HESA. It contains academic activity, outcomes and personal information.
 
 HESA enriches the data with statistical data and 'delivers' an enriched dataset back to each institution for data analysis. HESA may issue revisions of the same 'delivery'.
@@ -20,14 +23,16 @@ For example:
 The HESA delivery concept impacts various aspects of the data architecture and pipeline.
 
 ### Delivery Datasets
-- CSV files per delivery are stored in separate directories
+- Each delivery has a separate sub-directory in `data/deliveries`
+- Main CSV data files are moved into the subdirectory
+- A set of lookup files should also be copied to the subdirectory
 
 ### Database Structure
-- Each load table has a `hesa_delivery` column denoting what CSV file collection it is from
+- Each load table has `hesa_delivery` column indicating the delivery id
 - Each dimension table has compound natural key including `hesa_delivery`
 - This means one student/program/religion code/etc appears multiple times in each dimension (once per delivery they were included in)
 
-### ETL Process
+### Pipeline Processing
 - Orchestration scripts ensure pipeline is executed for each HESA delivery
 - Staging models combine deliveries using UNION operations
 - Dimension models maintain delivery context in surrogate keys
@@ -35,6 +40,13 @@ The HESA delivery concept impacts various aspects of the data architecture and p
 ### Data Access
 - Queries can filter on specific deliveries or span multiple deliveries
 - Reports can compare data across different deliveries
+
+
+## Receiving a new Delivery from HESA
+When new delivery is received:
+- Create load tables via scripts like `create_hesa_23056_load_tables.py`
+- Update staging models to UNION the new load tables
+- Add extract/load steps to Prefect orchestrator
 
 
 ## Multi-Delivery Advantages
