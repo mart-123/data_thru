@@ -1,11 +1,7 @@
 import time
 import subprocess
-from prefect import task, flow
-from prefect.tasks import task_input_hash
-from datetime import timedelta
 from utils.data_platform_core import get_config
 
-@task
 def run_extract_scripts(config):
     print("Running extracts...")
     transform_scripts = [
@@ -35,7 +31,6 @@ def run_extract_scripts(config):
     return all_success
 
 
-@task
 def run_load_scripts(config):
     print("Running loads...")
 
@@ -83,7 +78,6 @@ def run_load_scripts(config):
     return success
 
 
-@task
 def run_stage_scripts(config):
     print("Running DBT staging models...")
 
@@ -113,7 +107,6 @@ def run_stage_scripts(config):
     return True
 
 
-@task
 def run_dimension_scripts(config):
     print("Running DBT dimension models...")
 
@@ -143,26 +136,25 @@ def run_dimension_scripts(config):
     return True
 
 
-@task
 def get_config_task():
     return get_config()
 
 
-@flow(name="ETL Flow")
 def etl_flow():
     config = get_config_task()
 
     transform_success = False
     load_success = False
     stage_success = False
+    dimension_success = False
 
     transform_success = run_extract_scripts(config)
     if transform_success:
-        load_success = run_load_scripts(config, wait_for=[transform_success])
+        load_success = run_load_scripts(config)
         if load_success:
-            stage_success = run_stage_scripts(config, wait_for=[load_success])
+            stage_success = run_stage_scripts(config)
             if stage_success:
-                dimension_success = run_dimension_scripts(config, wait_for=[stage_success])
+                dimension_success = run_dimension_scripts(config)
     
     return {"transform success": transform_success,
             "load success": load_success,

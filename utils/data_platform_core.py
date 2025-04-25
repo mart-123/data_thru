@@ -11,11 +11,12 @@ import os
 import os.path
 import sys
 import json
-import datetime
 import subprocess
+import time
 import mysql.connector
 from mysql.connector import errorcode
 from dotenv import load_dotenv
+from datetime import datetime
 
 
 def get_windows_host_ip():
@@ -66,12 +67,18 @@ def get_config():
         # 0. Create flat config dictionary (to contain working directories)
         config = {}
 
-        # 1. Load basic environment variables (main config filename)
-        dotenv_file_path = find_dotenv_file()
-        load_dotenv(dotenv_file_path, override=True)
+        # 1. Load basic environment variables (base directory and config filename)
+        # (try/except handles containerised runs which have no .env file)
+        try:
+            dotenv_file_path = find_dotenv_file()
+            load_dotenv(dotenv_file_path, override=True)
+            print(f"loaded .env from: {dotenv_file_path}")
+        except FileNotFoundError:
+            print(f"No .env file found, using environment variables directly")
+
         base_dir = os.getenv("BASE_DIR")
+        data_dir = os.getenv("DATA_DIR")
         config_file_path = os.getenv("CONFIG_FILE")
-        print(f"loaded .env from: {dotenv_file_path}")
         print(f"using config file: {config_file_path}")
 
         # 2. Load main config file (contains nested, relative directories)
@@ -79,8 +86,8 @@ def get_config():
             json_config = json.load(config_file)
 
         # 4. Get base directories (absolute paths)
-        logs_path = os.path.join(base_dir, json_config["paths"]["base"]["logs"])
-        data_path = os.path.join(base_dir, json_config["paths"]["base"]["data"])
+        logs_path = os.path.join(data_dir, json_config["paths"]["base"]["logs"])
+        data_path = os.path.join(data_dir, json_config["paths"]["base"]["data"])
         scripts_path = os.path.join(base_dir, json_config["paths"]["base"]["scripts"])
         dbt_path = os.path.join(base_dir, json_config["paths"]["base"]["dbt"])
 
@@ -105,7 +112,8 @@ def get_config():
 
         # Get database settings
 #        config["db_host_ip"] = get_windows_host_ip() # only for windows-hosted MySQL connecting from WSL2
-        config["db_host_ip"] = "localhost"
+#        config["db_host_ip"] = "localhost" # for connecting to dockerised MySQL from host system execution
+        config["db_host_ip"] = os.getenv("DB_HOST")
         config["db_port"] = os.getenv("DB_PORT")
         config["db_user"] = os.getenv("DB_USER")
         config["db_pwd"] = os.getenv("DB_PWD")
@@ -157,42 +165,68 @@ def set_up_logging(config, script_name=None):
         raise
 
 
-def connect_to_db(config):
-    """Connects to MySQL database and returns connection object"""
-    try:
-        conn = mysql.connector.connect(
-            host=config["db_host_ip"],
-            port=config["db_port"],
-            user=config["db_user"],
-            password=config["db_pwd"],
-            database=config["db_name"]
-        )
+def connect_to_db(config, max_attempts=20, retry_delay=1):
+    """
+    Connects to MySQL database with retry logic
+    
+    Args:
+        config: Dictionary with DB connection parameters
+        max_attempts: Maximum number of connection attempts
+        retry_delay: Seconds to wait between attempts
+        
+    Returns:
+        Connection object or raises exception after max attempts
+    """
+    attempt=0
 
-        logging.info(
-            f"Connected to db: {config['db_name']} host: {config['db_host_ip']} port: {config['db_port']}"
-        )
-        return conn
-
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            logging.critical(
-                f"MySQL access denied, check credentials. Host: {config['db_host_ip']} port: {config['db_port']}, db: {config['db_name']}"
+    while attempt < max_attempts:
+        try:
+            attempt += 1
+            conn = mysql.connector.connect(
+                host=config["db_host_ip"],
+                port=config["db_port"],
+                user=config["db_user"],
+                password=config["db_pwd"],
+                database=config["db_name"]
             )
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            logging.critical(
-                f"MySQL database not found. Host: {config['db_host_ip']}, port: {config['db_port']}, db: {config['db_name']}"
+
+            logging.info(
+                f"Connected to db: {config['db_name']} host: {config['db_host_ip']} port: {config['db_port']}"
             )
-        else:
-            logging.critical(f"MySQL error: {err}")
+            return conn
 
-        # raise RuntimeError(f"Failed db connection. Host: {ip_addr}, port: {config['db_port']}, db: {config['db_name']}")
-        raise
+        except mysql.connector.Error as err:
+            retry_message = f"Connection attempt {attempt}/{max_attempts}"
 
+            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                logging.error(
+                    f"{retry_message}: MySQL access denied, check credentials. "
+                    f"Host: {config['db_host_ip']} port: {config['db_port']}, db: {config['db_name']}"
+                )
+            elif err.errno == errorcode.ER_BAD_DB_ERROR:
+                logging.error(
+                    f"{retry_message}: MySQL access denied, check credentials. "
+                    f"MySQL database not found. Host: {config['db_host_ip']}, port: {config['db_port']}, db: {config['db_name']}"
+                )
+            else:
+                logging.error(
+                    f"{retry_message}: MySQL error: {err}")
+
+            if attempt >= max_attempts:
+                logging.error(
+                    f"Failed to connect to MySQL after {max_attempts} attempts. "
+                    f"Host: {config['db_host_ip']} port: {config['db_port']}, db: {config['db_name']}"
+                )
+
+                raise RuntimeError(f"Failed to connect to MySQL after {max_attempts} attempts")
+    
+            # Wait before retrying
+            time.sleep(retry_delay)
 
 def is_valid_date(date_str):
     """Returns 'true' if valid date yyyy-mm-dd. Otherwise false."""
     try:
-        datetime.datetime.strptime(date_str, "%Y-%m-%d")
+        datetime.strptime(date_str, "%Y-%m-%d")
         return True
     except ValueError:
         return False
