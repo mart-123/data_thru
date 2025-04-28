@@ -26,6 +26,7 @@ logs/
 
 # Secrets and credentials
 profiles.yml
+daily.md
 
 # Temporary files
 .DS_Store

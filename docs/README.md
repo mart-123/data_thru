@@ -1,28 +1,29 @@
 # HESA Data Pipeline (project 'data_thru')
 
-This portfolio project contains an ETL pipeline that ingests student data and transforms it into a dimensional model for analysis/reporting. It demonstrates data engineering practices including ETL pipelines, data quality filters, historical data versioning, dimensional modelling and automated testing.
+This portfolio project demonstrates a data warehouse solution for higher education student data. It comprises:
 
-The dataset loosely resembles student data from HESA (Higher Education Statistics Agency). The architecture resembles what could be found in a university data warehouse.
+- Python ETL pipeline for data extraction, cleansing and simple transformations
+- DBT models for creating a dimensional star schema in MySQL
+- Docker containerisation for simple local/cloud deployment
+- Automated testing
 
-## Platform
-Some companies are moving their data warehouses to the cloud. This can be a convenient option but cost management and platform tie-in should be considered. This project is containerised so that it can be deployed locally or on a cloud provider with minimal changes.
+The architecture incorporates data engineering practices including data quality filters, historical versioning (SCD Type 2), dimensional modelling. This reflects a typical university solution.
 
 ## Data
-Tha student/program data is fictional, generated using a test data generator. Look-up tables were downloaded from HESA (Higher Education Statistics Agency) and modified for test scenarios.
+Student data was created using a test data generator. Look-up tables were downloaded from HESA (Higher Education Statistics Agency) and adapted for testing purposes.
 
 ## Automated testing
-Load tables are compared with their originating CSV files.
-Stage tables are each compared with an 'expected results' CSV file.
-Details of failed test cases support bug fixing.
+- Load tables are tested by row/column level comparison with their originating CSV files.
+- Stage tables are each tested by comparison with a manually created 'expected results' CSV file.
 
 ## Key components
-- Extract: Python scripts for data extraction, basic transformations and data quality filters
-- Load: MySQL table creation and data loading
-- Transform: DBT models for staging, dimensions and facts
-- Orchestration: Prefect flows for pipeline execution
+- Extract: Python scripts for data extraction, field-level transformations and data quality filters
+- Load: Data ingestion into MySQL tables closely resembling data sources
+- Transform: DBT models for data integration and dimensional modelling (facts and dimensions)
+- Orchestration: Python script handles pipeline execution and dependencies
 
 ## Documentation Sections
-* [Architecture Overview](architecture.md)
+* [Architecture](architecture.md)
 * [Data Model](data-model.md)
 * [ETL Process](etl-process.md)
 * [HESA Data Dictionary](hesa-data-dictionary.md)
