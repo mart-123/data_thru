@@ -1,7 +1,7 @@
 import os
 import subprocess
 from utils.data_platform_core import get_config
-from src.testing.TableTester import TableTester
+from TableTester import TableTester
 
 config = get_config()
 

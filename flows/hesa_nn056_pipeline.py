@@ -3,6 +3,10 @@ import subprocess
 from utils.data_platform_core import get_config
 
 def run_extract_scripts(config):
+    """
+    Runs all extract scripts. They are all initiated without any
+    dependencies between them.
+    """
     print("Running extracts...")
     transform_scripts = [
         ("extract_hesa_nn056_students.py", "22056_20240331"),

@@ -1,7 +1,7 @@
 import os
 import subprocess
 from utils.data_platform_core import get_config
-from src.testing.TableTester import TableTester
+from TableTester import TableTester
 
 config = get_config()
 
@@ -26,7 +26,7 @@ def main():
     source_file = "hesa_22056_20240331_demographics_transformed.csv"
     source_path = os.path.join(config['transformed_dir'], "22056_20240331", source_file)
 
-    target_table = "load_hesa_22056_20240331_student_demographics"
+    target_table = "load_hesa_22056_20240331_demographics"
     column_mappings = {
         "student_guid": "student_guid",
         "ethnicity": "ethnicity",

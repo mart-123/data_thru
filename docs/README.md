@@ -28,3 +28,14 @@ Student data was created using a test data generator. Look-up tables were downlo
 * [ETL Process](etl-process.md)
 * [HESA Data Dictionary](hesa-data-dictionary.md)
 * [Development Guide](development-guide.md)
+
+
+<div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
+  <strong>Navigation:</strong>
+  <a href="architecture.md">Architecture</a> |
+  <a href="data-deliveries.md">HESA Deliveries</a> |
+  <a href="data-model.md">Data Model</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="scripts.md">Scripts</a> |
+  <a href="daily.md">Development Journal</a>
+</div>

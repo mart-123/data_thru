@@ -1,3 +1,7 @@
+"""
+Example script showing how to generate CREATE TABLE commands
+from a JSON data structure. Not for actual use.
+"""
 import os
 import json
 from utils.data_platform_core import get_config, set_up_logging
@@ -62,5 +66,6 @@ def main():
         for create in creates:
             sql_file.write(create + '\n')
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
+print("WARNING : this script has been inactivated.")
