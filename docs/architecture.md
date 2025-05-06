@@ -161,7 +161,7 @@ Errors are mitigated, isolated and reported as follows:
   - Pipeline errors (exceptions and unrecoverable errors) are logged to a separate error log
 
 - **Restartable**:
-  - Processes are restartable without having to re-run prior dependencies
+  - Processes are re-runnable without having to re-run prior dependencies
   - Scripts contain no special 'restart from' logic, always processing entire dataset
 
 
@@ -211,10 +211,10 @@ This logging strategy supports both operational monitoring and post-execution an
 - **Bad data handling**: Invalid records are captured with reason codes for analysis
 - **Testing strategy**: Automated testing at both load and stage levels
 
-### Error Handling & Resilience
-- **Component isolation**: Each pipeline phase operates independently, allowing for partial runs
-- **Explicit dependency management**: Orchestration script enforces proper sequencing
-
+### General Implementation Decisions
+- **Human-readable dimension keys**: Composite surrogate keys (e.g., `ETH_10_22056_20240331`) that encode entity type, ID, and delivery code to improve traceability during troubleshooting
+- **Isolated pipeline phases**: Each pipeline phase (extract, load, stage, etc) runs in separate scripts rather than having fewer, more comprehensive scripts. This makes the codebase easier to reason about.
+- **Permanent tables**: Each pipeline phase writes to permanent tables rather than using views or CTEs. This supports troubleshooting, mid-pipeline restarts, and simpler scripts.
 
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
@@ -223,6 +223,6 @@ This logging strategy supports both operational monitoring and post-execution an
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
   <a href="pipeline-process.md">Pipeline Process</a> |
-  <a href="scripts.md">Scripts</a> |
-  <a href="daily.md">Development Journal</a>
+  <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="scripts.md">Scripts</a>
 </div>

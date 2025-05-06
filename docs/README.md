@@ -1,41 +1,56 @@
-# HESA Data Pipeline (project 'data_thru')
+# HESA Data Pipeline Project
 
-This portfolio project demonstrates a data warehouse solution for higher education student data. It comprises:
+This portfolio project demonstrates a data warehouse solution for higher education student data. It showcases a complete ETL pipeline from raw CSV files to dimensional data model, using industry-standard patterns and practices.
 
-- Python ETL pipeline for data extraction, cleansing and simple transformations
-- DBT models for creating a dimensional star schema in MySQL
-- Docker containerisation for simple local/cloud deployment
-- Automated testing
+## Key Features
 
-The architecture incorporates data engineering practices including data quality filters, historical versioning (SCD Type 2), dimensional modelling. This reflects a typical university solution.
+- **Multi-delivery data pipeline**: Handles multiple yearly HESA data deliveries with version tracking
+- **Quality-assured data flow**: Validates, cleanses and transforms student demographics and enrolment data
+- **Dimensional data model**: Star schema with surrogate keys that maintain data lineage
+- **Automated testing**: Component tests for data transformations with comparison against expected results
+- **Containerised deployment**: Docker and Docker Compose for consistent execution environments
 
-## Data
-Student data was created using a test data generator. Look-up tables were downloaded from HESA (Higher Education Statistics Agency) and adapted for testing purposes.
+## Architecture Overview
 
-## Automated testing
-- Load tables are tested by row/column level comparison with their originating CSV files.
-- Stage tables are each tested by comparison with a manually created 'expected results' CSV file.
+The solution implements a complete data pipeline with these components:
 
-## Key components
-- Extract: Python scripts for data extraction, field-level transformations and data quality filters
-- Load: Data ingestion into MySQL tables closely resembling data sources
-- Transform: DBT models for data integration and dimensional modelling (facts and dimensions)
-- Orchestration: Python script handles pipeline execution and dependencies
+- **Python extraction layer**: Validates raw data, applies field-level transformations, isolates bad data
+- **MySQL database**: Stores load tables, stage tables, and dimensional model
+- **DBT transformation layer**: Handles staging, integration, and dimensional modeling
+- **Docker infrastructure**: Containerises both database and application components
 
-## Documentation Sections
+It reflects real-world practices as could be found in a university data warehouse.
+
+## Getting Started
+To run the containerised DB and pipeline: 
+```bash
+# Clone the repository
+git clone https://github.com/mart-123/data_thru.git
+cd data_thru
+
+# Start the containers
+docker-compose up -d
+
+# Run the pipeline
+docker-compose run --rm app python [hesa_nn056_pipeline.py](http://_vscodecontentref_/0)
+
+# Monitor logs
+docker-compose logs -f app
+```
+
+For local development without Docker:
+1. Set up MySQL database
+2. Configure `.env` file with database connection details
+3. Install requirements: `pip install -r requirements.txt`
+4. Run the pipeline: `python3 flows/hesa_nn056_pipeline.py`
+
+
+## Documentation
+For more detailed information, please see the documentation sections below:
 * [Architecture](architecture.md)
+* [Data Deliveries](data-deliveries.md)
 * [Data Model](data-model.md)
-* [ETL Process](etl-process.md)
-* [HESA Data Dictionary](hesa-data-dictionary.md)
+* [Pipeline Process](pipeline-process.md)
+* [HESA Data Info](hesa-data-info.md)
 * [Development Guide](development-guide.md)
 
-
-<div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
-  <strong>Navigation:</strong>
-  <a href="architecture.md">Architecture</a> |
-  <a href="data-deliveries.md">HESA Deliveries</a> |
-  <a href="data-model.md">Data Model</a> |
-  <a href="pipeline-process.md">Pipeline Process</a> |
-  <a href="scripts.md">Scripts</a> |
-  <a href="daily.md">Development Journal</a>
-</div>

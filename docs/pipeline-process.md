@@ -64,3 +64,14 @@ FROM
 DBT dimension and fact models create the final star schema structure:
 - Dimension tables with delivery-aware surrogate keys
 - Fact tables with measures and dimension references
+
+
+<div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
+  <strong>Navigation:</strong>
+  <a href="architecture.md">Architecture</a> |
+  <a href="data-deliveries.md">HESA Deliveries</a> |
+  <a href="data-model.md">Data Model</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="scripts.md">Scripts</a>
+</div>

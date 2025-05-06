@@ -1,25 +1,19 @@
 # Data Warehouse: Star Schema
-
-The star schema design includes:
-
-- **Dimension Tables**: Student, Program, Religion, Ethnicity, etc.
-- **Fact Tables**: Student-Program relationships
+The star schema design includes dimension and fact tables as visualised below. For detailed column descriptions and business rules, see the DBT YAML definitions in [`dbt/models/schema.yml`](../dbt/models/schema.yml).
 
 Each dimension includes surrogate keys built with human-readable patterns:
 `DIM_<type>_<code>_<delivery>` (e.g., `STU_12345_22056_20240331`)
 
 
-## Delivery-Aware Surrogate Keys
-
-All dimension tables use surrogate keys that embed the HESA delivery code:
-
-- `DIM_HESA_STUDENT_KEY`: `STU_<student_guid>_<hesa_delivery>`
-- `DIM_HESA_RELIGION_KEY`: `REL_<religion_code>_<hesa_delivery>`
-
-This design allows the same entity (e.g., a student) to have different dimension records across multiple deliveries, capturing changes over time.
+## Delivery-Aware Dimensions
+- Delivery Code uniquely identifies each tranche of CSV files received from HESA.
+- It is a composite value incorporating the receipt date.
+- It is stored in warehouse tables as column `hesa_delivery`
+- This allows each student/program/ethnicity code/etc to have different data per delivery.
+- Dimensions also contain the delivery code in their surrogate key
 
 
-## Star Schema Design
+## Star Schema ERD
 
 ```mermaid
 erDiagram
@@ -51,3 +45,14 @@ erDiagram
         boolean fees_paid_bool
         varchar hesa_delivery
     }
+```
+
+<div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
+  <strong>Navigation:</strong>
+  <a href="architecture.md">Architecture</a> |
+  <a href="data-deliveries.md">HESA Deliveries</a> |
+  <a href="data-model.md">Data Model</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="scripts.md">Scripts</a>
+</div>

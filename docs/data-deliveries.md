@@ -80,7 +80,7 @@ graph TD
 <div style="margin: 2em 0; min-height: 30px;"></div>
 
 
-## Implementation in the Data Model
+## Delivery Code in the Data Model
 The HESA delivery concept impacts various aspects of the data architecture and pipeline.
 
 ### Delivery Datasets
@@ -138,6 +138,6 @@ Embedding the delivery id in natural keys of the dimensional model provides:
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
   <a href="pipeline-process.md">Pipeline Process</a> |
-  <a href="scripts.md">Scripts</a> |
-  <a href="daily.md">Development Journal</a>
+  <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="scripts.md">Scripts</a>
 </div>
