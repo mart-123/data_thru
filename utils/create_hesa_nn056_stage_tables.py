@@ -1,5 +1,5 @@
-# mysql is running in windows
 """
+NOTE: Script deprecated due to stage tables being managed by DBT
 This module creates HESA stage tables. Note the nn056 designation, these tables
 take a merge of multiple load tables each from 22056 onwards under the nn056 schema.
 """
@@ -199,7 +199,6 @@ def generate_create_statements():
     return create_statements
 
 
-
 def create_table(cursor: mysql.connector.cursor.MySQLCursor, table_name, create_statement):
     try:
         cursor.execute(f"""
@@ -217,8 +216,6 @@ def create_table(cursor: mysql.connector.cursor.MySQLCursor, table_name, create_
     except mysql.connector.Error as err:
         print(f"Exception during creation of {table_name}: {err}")
         raise
-
-
 
 
 def main():
@@ -248,4 +245,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    print("WARNING: script deprecated, stage tables now created by DBT")
+#    main()

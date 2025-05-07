@@ -1,21 +1,13 @@
 {
     "environment": "test",
     "paths": {
-        "base": {
-            "logs": "logs",
-            "data": "data_test",
-            "scripts": "ingest",
-            "dbt": "dbt"
-        },
-        "data": {
-            "deliveries": "deliveries",
-            "bad_data": "bad_data",
-            "transformed": "transformed",
-            "expected": "expected"
-        },
-        "scripts": {
-            "extract": "extract",
-            "load": "load"
-        }
+        "scripts_base": "ingest",
+        "dbt_base": "dbt",
+        "extract_scripts": "extract",
+        "load_scripts": "load",
+        "deliveries": "deliveries",
+        "bad_data": "bad_data",
+        "transformed_data": "transformed",
+        "expected_data": "expected"
     }
 }

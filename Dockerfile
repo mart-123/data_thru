@@ -21,5 +21,5 @@ COPY . .
 ENV PYTHONPATH=/app
 
 # Command to run
-CMD ["python", "-u", "flows/hesa_nn056_pipeline.py"]
+CMD ["python3", "-u", "flows/hesa_nn056_pipeline.py"]
 #CMD ["python", "-u", "test_import.py"]

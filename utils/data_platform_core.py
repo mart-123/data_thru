@@ -58,7 +58,7 @@ def get_config():
     fully qualified file/dir path names in flat 'config' dictionary.
 
     Returns a dictionary containing application config including:
-        - logging directories and files
+        - logging directories
         - data directories
 
     Expects to find main config filepath in .env file in project root.
@@ -78,6 +78,7 @@ def get_config():
 
         base_dir = os.getenv("BASE_DIR")
         data_dir = os.getenv("DATA_DIR")
+        log_dir = os.getenv("LOG_DIR")
         config_file_path = os.getenv("CONFIG_FILE")
         print(f"using config file: {config_file_path}")
 
@@ -86,28 +87,24 @@ def get_config():
             json_config = json.load(config_file)
 
         # 4. Get base directories (absolute paths)
-        logs_path = os.path.join(data_dir, json_config["paths"]["base"]["logs"])
-        data_path = os.path.join(data_dir, json_config["paths"]["base"]["data"])
-        scripts_path = os.path.join(base_dir, json_config["paths"]["base"]["scripts"])
-        dbt_path = os.path.join(base_dir, json_config["paths"]["base"]["dbt"])
+        scripts_path = os.path.join(base_dir, json_config["paths"]["scripts_base"])
+        dbt_path = os.path.join(base_dir, json_config["paths"]["dbt_base"])
 
         # 5. Declare log directories/files (using environment name parameter)
         env = json_config["environment"]
-        config["log_dir"] = os.path.join(logs_path, env)
-        config["info_log_file"] = os.path.join(config["log_dir"], "etl_info.log")
-        config["error_log_file"] = os.path.join(config["log_dir"], "etl_error.log")
+        config["log_dir"] = log_dir
         config["env"] = env
         print(f"environment: {env}")
 
         # 6. Declare data directories
-        config["deliveries_dir"] = os.path.join(data_path, json_config["paths"]["data"]["deliveries"])
-        config["bad_data_dir"] = os.path.join(data_path, json_config["paths"]["data"]["bad_data"])
-        config["transformed_dir"] = os.path.join(data_path, json_config["paths"]["data"]["transformed"])
-        config["expected_dir"] = os.path.join(data_path, json_config["paths"]["data"]["expected"])
+        config["deliveries_dir"] = os.path.join(data_dir, json_config["paths"]["deliveries"])
+        config["bad_data_dir"] = os.path.join(data_dir, json_config["paths"]["bad_data"])
+        config["transformed_dir"] = os.path.join(data_dir, json_config["paths"]["transformed_data"])
+        config["expected_dir"] = os.path.join(data_dir, json_config["paths"]["expected_data"])
 
         # 7. Declare script directories
-        config["extract_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["extract"])
-        config["load_script_dir"] = os.path.join(scripts_path, json_config["paths"]["scripts"]["load"])
+        config["extract_script_dir"] = os.path.join(scripts_path, json_config["paths"]["extract_scripts"])
+        config["load_script_dir"] = os.path.join(scripts_path, json_config["paths"]["load_scripts"])
         config["dbt_project_dir"] = dbt_path
 
         # Get database settings
@@ -141,11 +138,14 @@ def set_up_logging(config, script_name=None):
         else:
             log_format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
-        info_handler = logging.FileHandler(config["info_log_file"], mode="a")
+        info_log_file = os.path.join(config["log_dir"], "etl_info.log")
+        error_log_file = os.path.join(config["log_dir"], "etl_error.log")
+
+        info_handler = logging.FileHandler(info_log_file, mode="a")
         info_handler.setLevel(logging.INFO)
         info_handler.setFormatter(log_format)
 
-        error_handler = logging.FileHandler(config["error_log_file"], mode="a")
+        error_handler = logging.FileHandler(error_log_file, mode="a")
         error_handler.setLevel(logging.WARNING)
         error_handler.setFormatter(log_format)
 

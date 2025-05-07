@@ -60,6 +60,13 @@ For example:
 <div style="margin: 2em 0; min-height: 30px;"></div>
 
 
+## CSV Directory Structure
+Each data delivery has its own 'deliveries' sub-directory, and the data flow into 'transformed' or 'bad data' directories for further processing. Please see `architecture.md` for directory structure.
+
+
+<div style="margin: 2em 0; min-height: 30px;"></div>
+
+
 ## Delivery Data Flow Diagram
 
 ```mermaid

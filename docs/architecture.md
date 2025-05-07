@@ -91,12 +91,60 @@ This approach provides detailed data quality information for remediation, and im
 <div style="margin: 2em 0; min-height: 30px;"></div>
 
 
+## Directory Structure for Data and Logs
+<local-data-path>/
+├── data_thru/
+│   ├── data/
+│   │   ├── deliveries/
+│   │   │   ├── 22056_20240331/
+│   │   │   │   ├── hesa_22056_20240331_data_students.csv
+│   │   │   │   ├── hesa_22056_20240331_data_demographics.csv
+│   │   │   │   ├── hesa_22056_20240331_data_student_programs.csv
+│   │   │   │   ├── hesa_22056_20240331_lookup_ETHNICITY.csv
+│   │   │   │   └── ... (other lookup files)
+│   │   │   │
+│   │   │   └── 23056_20250331/
+│   │   │       ├── hesa_23056_20250331_data_students.csv
+│   │   │       ├── hesa_23056_20250331_data_demographics.csv
+│   │   │       ├── hesa_23056_20250331_data_student_programs.csv
+│   │   │       └── ... (lookup files)
+│   │   │
+│   │   ├── transformed/
+│   │   │   ├── 22056_20240331/
+│   │   │   │   ├── hesa_22056_20240331_students_transformed.csv
+│   │   │   │   ├── hesa_22056_20240331_demographics_transformed.csv
+│   │   │   │   └── hesa_22056_20240331_student_programs_transformed.csv
+│   │   │   │
+│   │   │   └── 23056_20250331/
+│   │   │       └── ... (transformed files)
+│   │   │
+│   │   └── bad_data/
+│   │       ├── 22056_20240331/
+│   │       │   ├── hesa_22056_20240331_students_bad_data.csv
+│   │       │   ├── hesa_22056_20240331_demographics_bad_data.csv
+│   │       │   └── hesa_22056_20240331_student_programs_bad_data.csv
+│   │       │
+│   │       └── 23056_20250331/
+│   │           └── ... (bad data files)
+│   └── log/
+│       ├── test/
+│       │   ├── etl_info.log
+│       │   └── etl_error.log
+│       └── prod/
+│           ├── etl_info.log
+│           └── etl_error.log
+```
+
+<div style="margin: 2em 0; min-height: 30px;"></div>
+
+
 ## Config Management
 
 - **Environment Variables**
-  - Hold DB credentials and filepath for main config file
   - Stored in `.env` file for host execution
   - Stored in `docker-compose.yml` for containerised execution
+  - Contain DB credentials
+  - `CONFIG_FILE`: Filepath for main config file
 
 - **Main Config File**:
   - Typically named `config.json`, `test_config.json` or similar
@@ -176,17 +224,16 @@ The system uses a structured logging approach implemented through `data_platform
   - Log levels are configurable through configuration files
 
 - **Log Destinations**:
-  - File logging for permanent record
-  - Console output for interactive monitoring
-  - Container logs captured by Docker logging driver
+  - Log files (Python script progress/errors)
+  - Console output (DBT progress/errors)
+  - Container logs captured by Docker
 
 - **Log Content**:
-  - Execution progress and milestones
+  - Pipeline progress
+  - File names, table names and row counts
   - Performance metrics (execution time, row counts)
   - Error details with context
   - Data quality statistics
-
-This logging strategy supports both operational monitoring and post-execution analysis.
 
 
 <div style="margin: 2em 0; min-height: 30px;"></div>
