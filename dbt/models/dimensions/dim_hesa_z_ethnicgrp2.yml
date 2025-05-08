@@ -18,7 +18,7 @@ models:
 
       - name: hesa_delivery
         data_type: varchar(20)
-        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"
+        description: "Unique identifier for a HESA data delivery in format 'YYXXX_YYYYMMDD' where YY=academic year, XXX=schema version, and YYYYMMDD=delivery date. Maintains data lineage and enables cross-delivery analysis."
 
       - name: source_file
         data_type: varchar(250)

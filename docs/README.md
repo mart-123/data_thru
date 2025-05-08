@@ -18,7 +18,7 @@ The solution implements a complete data pipeline with these components:
 
 - **Python extraction layer**: Validates raw data, applies field-level transformations, isolates bad data
 - **MySQL database**: Stores load tables, stage tables, and dimensional model
-- **DBT transformation layer**: Handles staging, integration, and dimensional modeling
+- **DBT transformation layer**: Handles staging, integration, and dimensional modelling
 - **Docker infrastructure**: Containerises both database and application components
 
 It reflects real-world practices as could be found in a university data warehouse.

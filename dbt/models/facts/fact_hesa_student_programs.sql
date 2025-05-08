@@ -7,9 +7,12 @@
 /*
   Note on uniqueness constraints:
   The unique key of this fact table consists of dim_hesa_student_key and dim_hesa_program_key.
-  Those dimensions each have a guid as their business key, but their natural key consists of
-  that plus the delivery id. Hesa_delivery is therefore an implicit part of the uniqueness constraint.
-  The same student in two deliveries will have one GUID but two rows in dim_hesa_student.
+  Those dimensions each have a guid as their business key, with their surrogate key consisting of
+  that guid plus the delivery id. Hesa_delivery is therefore an implicit part of the uniqueness constraint.
+  
+  The same student in two deliveries will have two different dimension keys (STU_<guid>_<delivery1> vs 
+  STU_<guid>_<delivery2>) but will share the same student_guid. This student_guid is exposed as 
+  canonical_student_key to make its purpose clear - enabling cross-delivery student analysis.
 */
 
 WITH main_data AS (
@@ -23,12 +26,14 @@ WITH main_data AS (
 ),
 students AS (
     SELECT dim_hesa_student_key,
+            canonical_student_key,
             student_guid,
             hesa_delivery
     FROM {{ ref('dim_hesa_student') }}
 ),
 programs AS (
     SELECT dim_hesa_program_key,
+            canonical_program_key,
             program_guid,
             hesa_delivery
     FROM {{ ref('dim_hesa_program') }}
@@ -38,6 +43,10 @@ SELECT
     -- Main dimension keys (for unique constraint)
     students.dim_hesa_student_key,
     programs.dim_hesa_program_key,
+
+    -- Canonical dimension keys (for cross-delivery reporting)
+    students.canonical_student_key,
+    programs.canonical_program_key,
 
     -- HESA delivery code (for context only)
     main_data.hesa_delivery,

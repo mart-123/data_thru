@@ -1,7 +1,6 @@
 # Data Engineering Portfolio Project Journey
 
 ## Technical Evolution
-
 ### January 2025: Foundation & Core ETL Development
 - Developed initial ETL pipeline with Python and Pandas
 - Implemented data validation and good/bad results files
@@ -18,17 +17,21 @@
 ### March 2025: Architecture & Testing
 - Implemented OOP principles for improved code organization
 - Developed component-based testing strategy using "expected results" files
-- Containerized database with Docker for consistent environment
+- Containerised database with Docker for consistent environment
 - Improved database connection management with retry and consistent transaction handling
 
-### April 2025: Advanced Features & Deployment
+### April 2025: DBT, Modelling, Containerise, Deployment
 - Re-implemented stage tables with DBT
-- Implemented dimensional modeling with DBT
+- Implemented dimensional modelling with DBT
 - Created full Docker containerization with volume mapping 
 - Developed documentation framework
-- Added SCD Type 2 historical tracking for dimensions
 
+### May 2025: 
+- Wiki content and 'Getting Started/Install Guide'
+- Refactored code to simplify config
+- Canonical keys to enable cross-delivery reporting
 
+<div style="margin: 2em 0; min-height: 30px;"></div>
 
 
 # Key Learnings
@@ -38,17 +41,24 @@
 - **Parallelization**: Implemented multi-processing for transforms but discovered it wasn't beneficial for this I/O-bound workload
 
 ## Database Technologies
-- **MySQL vs SQLite**: Transitioned from SQLite to MySQL to resolve WSL compatibility issues and general feature set
+- **MySQL vs SQLite**: Transitioned from SQLite to MySQL to resolve WSL compatibility issues
 - **Connection Management**: Implemented retry logic and proper transaction handling
 
 ## Containerization
 - **Docker Compose**: Configured multi-container setup with database and application containers
-- **Volume Mapping**: Designed persistent storage strategy for containerized applications
+- **Volume Mapping**: Configured persistent storage for containerised pipeline and MySQL database
 
 ## Testing & Quality
-- **Component Testing**: Developed automated tests for extract, load, and transformation processes
+- **Component Testing**: Developed automated tests for extract, load and staging processes
 - **Data Quality Management**: Implemented comprehensive validation and detailed error tracking
 
+## Dimensional Modelling
+- **DBT Implementation**: Applied DBT for staging, dimensional modelling, data integration
+- **Dual-Key Pattern**: Developed delivery-based surrogate keys and canonical keys, supporting lineage and cross-delivery analysis
+- **Code Mapping**: Implemented canonical code mapping for lookup dimensions to handle changing codes/meanings between deliveries
+- **Dimensional Design**: Built star schema with dimension/fact separation and human-readable surrogate keys
+
+<div style="margin: 2em 0; min-height: 30px;"></div>
 
 
 # Data Warehouse Project Journey
@@ -62,36 +72,44 @@ gantt
     axisFormat %b %d
     
     section 1. Foundation
-    Initial Setup & Source Data Creation   :2025-01-20, 5d
-    Data Quality Framework Implementation  :2025-01-25, 7d
-    MySQL Database Architecture           :2025-01-28, 8d
+    Initial Setup & Source Data Creation   :2025-01-20
+    Data Quality Framework Implementation  :2025-01-25
+    MySQL Database Architecture           :2025-01-28
     
     section 2. Data Processing
-    Parallel Processing Implementation    :2025-02-06, 5d
-    Structured Error Handling System      :2025-02-10, 6d
-    Multi-Delivery Support Pattern        :2025-02-15, 8d
+    Parallel Processing Implementation    :2025-02-06
+    Structured Error Handling System      :2025-02-10
+    Multi-Delivery Support Pattern        :2025-02-15
     
     section 3. Advanced ETL
-    Dynamic Field-Level Transformations   :2025-03-01, 7d
-    Automated Data Validation Framework   :2025-03-08, 8d
-    Component-Based Testing Strategy      :2025-03-17, 10d
+    Dynamic Field-Level Transformations   :2025-03-01
+    Automated Data Validation Framework   :2025-03-08
+    Component-Based Testing Strategy      :2025-03-17
     
-    section 4. Integration & Deployment
-    DBT Star Schema Implementation        :2025-04-01, 10d
-    Docker Multi-Container Architecture   :2025-04-10, 8d
-    Dimensional Modeling with SCD Type 2  :2025-04-18, 7d
+    section 4. Dimensional Model & Deployment
+    DBT Star Schema Implementation        :2025-04-01
+    Docker Multi-Container Architecture   :2025-04-10
+
+    section 5. Documentation, Code Improvements
+    Markdown Wiki                         :2025-04-20
+    Installation/Developer Guide          :2025-04-24
+    Code Refactor                         :2025-05-06
+
+    section 6. Canonical Keys
+    Canonical Keys and Code Mappings      :2025-05-08
 ```
 
 
+<div style="margin: 2em 0; min-height: 30px;"></div>
 
 
 ## Key Technical Implementations
 
 ### ETL Pipeline
 - **Multi-Phase Processing**: Built an ELT pipeline with extract, load, and transform phases
-- **Parallel Processing**: Used multiprocessing with batched validation to improve throughput
+- **Parallel Processing**: Used batched validation and multi-processing to improve resource usage
 - **Error Handling**: Implemented validation with detailed error tracking for failed records
-- **Multi-Delivery Support**: Created parameterized execution for multiple data deliveries
+- **Multi-Delivery Support**: Created parameterised execution for multiple data deliveries
 
 ### Data Quality Management
 - **Validation**: Added field-level checks for formats, data types, and relationships
@@ -99,20 +117,17 @@ gantt
 - **Data Lineage**: Maintained delivery codes throughout the pipeline
 
 ### Database & Transformation
-- **Dimensional Modeling**: Created star schema with SCD Type 2 historical tracking
+- **Dimensional Modelling**: Created star schema
 - **DBT Layers**: Built transformation layers from raw to dimensional models
 - **SQL Patterns**: Used UNION, JOIN, and DISTINCT operations for multiple deliveries
+- **Canonical Keys**: Dual-key approach with delivery-specific surrogate keys and canonical business keys for cross-delivery analytics
+- **Code Mappings**: Standardised canonical codes for lookup dimensions to handle changing codes/labels between deliveries
 
 ### System Architecture
 - **Docker Containers**: Set up multi-container solution with volume mapping
-- **Configuration**: Created centralized configuration system for different environments
+- **Configuration**: Created centralised configuration system for different environments
 - **Error Management**: Added connection retry logic and transaction handling
 
-
-
-
-## Full Development Log
-For a detailed account of this project's development journey, see daily.md.
 
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">

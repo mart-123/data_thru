@@ -1,5 +1,5 @@
 # Data Pipeline
-This document details the implementation approach and processing flow used to transform Higher Education Statistics Agency (HESA) student data into a dimensional model. It covers the technical implementation of each pipeline phase from initial extraction through dimensional modeling.
+This document details the implementation approach and processing flow used to transform Higher Education Statistics Agency (HESA) student data into a dimensional model. It covers the technical implementation of each pipeline phase from initial extraction through dimensional modelling.
 
 
 ## Multiple Deliveries
@@ -9,7 +9,7 @@ HESA data arrives periodically in annual submissions (e.g., "22056_20240331"). T
 - **Extraction**: Extract scripts process CSV files by delivery code parameter
 - **Loading**: Load tables are created with delivery-specific naming
 - **Integration**: DBT staging models combine data across deliveries using SQL UNION operations
-- **Modeling**: Delivery codes are embedded in surrogate keys for tracking lineage
+- **Modelling**: Delivery codes are embedded in surrogate keys for tracking lineage
 
 
 ## Pipeline Phases
@@ -60,7 +60,7 @@ FROM
     {{ source('hesa', 'load_hesa_22056_20240331_student_programs') }} t1
 ```
 
-### Dimensional Modeling
+### Dimensional Modelling
 DBT dimension and fact models create the final star schema structure:
 - Dimension tables with delivery-aware surrogate keys
 - Fact tables with measures and dimension references

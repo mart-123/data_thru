@@ -8,6 +8,10 @@ models:
         data_type: varchar(61)
         description: "Surrogate key, structured PGM_<program_guid>_<hesa_delivery> for human readability"
 
+      - name: canonical_program_key
+        data_type: char(36)
+        description: "Business key for cross-delivery analysis, allows joining program data across multiple deliveries"
+
       - name: program_guid
         data_type: char(36)
         description: "HESA unique identifier for program of study"
@@ -26,4 +30,4 @@ models:
 
       - name: hesa_delivery
         data_type: varchar(20)
-        description: "Identifies the originating fileset from  HESA (collection code + actual delivery date)"
+        description: "Unique identifier for a HESA data delivery in format 'YYXXX_YYYYMMDD' where YY=academic year, XXX=schema version, and YYYYMMDD=delivery date. Maintains data lineage and enables cross-delivery analysis."
