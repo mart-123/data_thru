@@ -13,6 +13,15 @@ Each dimension includes surrogate keys built with human-readable patterns:
 - Dimensions also contain the delivery code in their surrogate key
 
 
+## Inter-Delivery Mappings
+- Dimensions have delivery code as part of their PK.
+- Delivery Code uniquely identifies each tranche of CSV files received from HESA.
+- It is a composite value incorporating the receipt date.
+- It is stored in warehouse tables as column `hesa_delivery`
+- This allows each student/program/ethnicity code/etc to have different data per delivery.
+- Dimensions also contain the delivery code in their surrogate key
+
+
 ## Star Schema ERD
 
 ```mermaid
@@ -49,6 +58,7 @@ erDiagram
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
+  <a href="README.md">Home</a> 
   <a href="architecture.md">Architecture</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |

@@ -5,7 +5,7 @@ This document describes the architecture of the HESA data warehouse, including i
 <div style="margin: 2em 0; min-height: 20px;"></div>
 
 
-## Contents
+## Sections
 - [Pipeline Diagram](#pipeline-diagram)
 - [Scripts](#scripts)
 - [Orchestration](#orchestration)
@@ -57,7 +57,7 @@ The codebase incorporates Python scripts and DBT models.
   - Look-up table names: Hard-coded in orchestration script for each look-up table to be ingested 
   - Phase dependencies: Extract/load/stage/dim/fact phases are each dependent on preceding phase
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Orchestration
@@ -65,7 +65,7 @@ The codebase incorporates Python scripts and DBT models.
 - Pipeline has several phases: extract, load, stage, dimensions and facts
 - Each phase is dependent on prior phase success
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Data Quality
@@ -88,10 +88,11 @@ Data quality filtering occurs in the extract scripts. Records are validated and 
 This approach provides detailed data quality information for remediation, and improves stability by quarantining the bad data.
 
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Directory Structure for Data and Logs
+```
 <local-data-path>/
 ├── data_thru/
 │   ├── data/
@@ -135,11 +136,10 @@ This approach provides detailed data quality information for remediation, and im
 │           └── etl_error.log
 ```
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Config Management
-
 - **Environment Variables**
   - Stored in `.env` file for host execution
   - Stored in `docker-compose.yml` for containerised execution
@@ -156,12 +156,12 @@ This approach provides detailed data quality information for remediation, and im
   - Main config file, which is loaded into dictionary `config`
 
 This approach enables:
-  - Standard config across the codebase
-  - Different MySQL DB and CSV directories per environment (dev, test, live)
-  - Containerised or direct execution in host system.
+- Standard config across the codebase
+- Different MySQL DB and CSV directories per environment (dev, test, live)
+- Containerised or direct execution in host system.
 
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Docker Containerisation
@@ -185,7 +185,7 @@ The warehouse is containerised using Docker (local execution also supported duri
 This approach enables consistent deployment while maintaining flexibility for local development.
 
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Error Handling
@@ -213,7 +213,7 @@ Errors are mitigated, isolated and reported as follows:
   - Scripts contain no special 'restart from' logic, always processing entire dataset
 
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Logging
@@ -236,7 +236,7 @@ The system uses a structured logging approach implemented through `data_platform
   - Data quality statistics
 
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Design Decisions
@@ -266,6 +266,7 @@ The system uses a structured logging approach implemented through `data_platform
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
+  <a href="README.md">Home</a> 
   <a href="architecture.md">Architecture</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |

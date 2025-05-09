@@ -1,6 +1,33 @@
 # HESA Data Pipeline Project
-
 This portfolio project demonstrates a data warehouse solution for higher education student data. It showcases a complete ETL pipeline from raw CSV files to dimensional data model, using industry-standard patterns and practices.
+
+
+<div style="margin: 1em 0; min-height: 20px;"></div>
+
+
+## On this Page
+- [Project Documentation](#project-documentation)
+- [Key Features](#key-features)
+- [Architecture Overview](#architecture-overview)
+- [Getting Started](#getting-started)
+- [Automated Testing](#automated-testing)
+
+
+<div style="margin: 1em 0; min-height: 20px;"></div>
+
+
+## Project Documentation
+This README provides a high-level overview. For detailed information, please see these **separate wiki pages**:
+* [Architecture](architecture.md) - Detailed design and component descriptions
+* [Data Deliveries](data-deliveries.md) - Format and structure of input data
+* [Data Model](data-model.md) - Star schema and dimension details
+* [Pipeline Process](pipeline-process.md) - ETL workflow and processing steps
+* [HESA Data Info](hesa-data-info.md) - Background on the higher education data
+* [Development Guide](development-guide.md) - Contributing to the project
+
+
+<div style="margin: 1em 0; min-height: 20px;"></div>
+
 
 ## Key Features
 - **Multi-delivery data pipeline**: Handles multiple yearly HESA data deliveries with version tracking
@@ -10,7 +37,7 @@ This portfolio project demonstrates a data warehouse solution for higher educati
 - **Containerised deployment**: Docker and Docker Compose for consistent execution environments
 
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Architecture Overview
@@ -24,12 +51,12 @@ The solution implements a complete data pipeline with these components:
 It reflects real-world practices as could be found in a university data warehouse.
 
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Getting Started
 
-### Prerequisites (Both Methods)
+### Prerequisites
 1. Clone the repository
 ```bash
    git clone https://github.com/mart-123/data_thru.git
@@ -124,15 +151,31 @@ docker-compose logs -f app
 
 4. Run queries against the dimensional model
 
-<div style="margin: 2em 0; min-height: 30px;"></div>
+<div style="margin: 1em 0; min-height: 20px;"></div>
+
+## Automated Testing
+A suite of component test scripts and expected results has been build in `/tests/component/`
+
+to run an individual test script (with detailed console output):
+```bash
+# --run-etl : if present, test script first runs the script it is testing
+python3 -m tests.component.run_component_tests
+```
+
+To run all component test scripts:
+```bash
+# --run-etl : if present, each test scripts first run the script it is testing
+python3 -m tests.component.run_component_tests --run-etl
+```
 
 
-## Documentation
-For more detailed information, please see the documentation sections below:
-* [Architecture](architecture.md)
-* [Data Deliveries](data-deliveries.md)
-* [Data Model](data-model.md)
-* [Pipeline Process](pipeline-process.md)
-* [HESA Data Info](hesa-data-info.md)
-* [Development Guide](development-guide.md)
-
+<div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
+  <strong>Navigation:</strong>
+  <a href="README.md">Home</a> 
+  <a href="architecture.md">Architecture</a> |
+  <a href="data-deliveries.md">HESA Deliveries</a> |
+  <a href="data-model.md">Data Model</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="scripts.md">Scripts</a>
+</div>

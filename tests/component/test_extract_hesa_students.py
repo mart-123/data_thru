@@ -1,6 +1,7 @@
 import pandas as pd
 import subprocess
 import os
+import sys
 from utils.data_platform_core import get_config
 
 config = get_config()
@@ -498,7 +499,11 @@ def main():
     delivery_code = "22056_20240331"
     transformed_filename = f"hesa_{delivery_code}_students_transformed.csv"
     bad_data_filename = f"hesa_{delivery_code}_students_bad_data.csv"
-    run_etl_process("extract_hesa_nn056_students.py", delivery_code=delivery_code)
+    
+    # Run ETL process if required
+    if "--run-etl" in sys.argv:
+        run_etl_process("extract_hesa_nn056_students.py", delivery_code=delivery_code)
+    
     transformed_df = get_transformed_csv(transformed_filename, delivery_code=delivery_code)
     bad_data_df = get_bad_data_csv(bad_data_filename, delivery_code=delivery_code)
     run_transformed_file_tests(transformed_df)

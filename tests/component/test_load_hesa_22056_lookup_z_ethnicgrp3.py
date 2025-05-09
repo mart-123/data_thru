@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 from utils.data_platform_core import get_config
 from TableTester import TableTester
@@ -19,7 +20,9 @@ def run_etl_script():
 
 
 def main():
-    run_etl_script()
+    # Run ETL process if required
+    if "--run-etl" in sys.argv:
+        run_etl_script()
 
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)

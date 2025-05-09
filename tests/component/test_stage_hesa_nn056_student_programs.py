@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 from utils.data_platform_core import get_config
 from TableTester import TableTester
@@ -24,6 +25,10 @@ def main():
     Instantiates TableTester class with source/target dataset definitions,
     then invokes the test process.
     """
+    # Run ETL process if required
+    if "--run-etl" in sys.argv:
+        run_etl_model("stage_hesa_nn056_student_programs")
+
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)
     source_file = "expected_stage_hesa_nn056_student_programs.csv"
@@ -50,5 +55,4 @@ def main():
 
 
 if __name__ == "__main__":
-    run_etl_model("stage_hesa_nn056_student_programs")
     main()

@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 from utils.data_platform_core import get_config
 from TableTester import TableTester
@@ -19,6 +20,10 @@ def run_etl_model(etl_model_name):
 
 
 def main():
+    # Run ETL process if required
+    if "--run-etl" in sys.argv:
+        run_etl_model("stage_hesa_nn056_lookup_disability")
+
     # Declare parameters for test suite
     this_script_name = os.path.basename(__file__)
     source_file = "expected_stage_hesa_nn056_DISABILITY.csv"
@@ -42,6 +47,4 @@ def main():
 
 
 if __name__ == "__main__":
-# Uncomment to run ETL component first
-#    run_etl_model("stage_hesa_nn056_lookup_disability")
     main()

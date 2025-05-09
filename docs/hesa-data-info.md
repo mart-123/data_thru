@@ -46,6 +46,7 @@ HESA provides extensive documentation about their student data schema and the CS
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
+  <a href="README.md">Home</a> 
   <a href="architecture.md">Architecture</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
