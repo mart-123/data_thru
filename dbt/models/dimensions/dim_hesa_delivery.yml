@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: dim_hesa_delivery
+    description: "List of datasets received from HESA along with the original data collection they each relate to."
+    columns:
+      - name: dim_hesa_delivery_key
+        data_type: varchar(30)
+        description: "Surrogate key structured DEL_<delivery_code>_ for human readability"
+
+      - name: delivery_code
+        data_type: varchar(20)
+        description: "Identifier of HESA delivery, typically collection code + receipt date"
+
+      - name: delivery_received
+        data_type: timestamp
+        description: "Date when the delivery was received"
+
+      - name: collection_ref
+        data_type: varchar(50)
+        description: "Reference to the data collection that was sent to HESA as the basis for this delivery"
+
+      - name: collection_sent
+        data_type: timestamp
+        description: "Date when the related data collection was originally sent to HESA"
+
+      - name: delivery_description
+        data_type: varchar(400)
+        description: "Description of the HESA data delivery"
+
+      - name: source_file
+        data_type: varchar(250)
+        description: "CSV filename that the row originates from"

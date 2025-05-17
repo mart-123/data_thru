@@ -1,6 +1,7 @@
 """
+DO NOT ACTUAL USE.
 Example script showing how to generate CREATE TABLE commands
-from a JSON data structure. Not for actual use.
+from a JSON data structure.
 """
 import os
 import json

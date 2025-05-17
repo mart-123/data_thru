@@ -38,7 +38,11 @@ def run_extract_scripts(config):
 def run_load_scripts(config):
     print("Running loads...")
 
-    # Process main load tables
+    # Process deliveries metadata file
+    script_path = f"{config['load_script_dir']}/load_hesa_delivery_metadata.py"
+    result = subprocess.run(["python3", script_path], capture_output=True, text=True)
+
+    # Set up list of loads for main data files
     main_nn056_loads = [
         ("load_hesa_nn056_students.py", "22056_20240331"),
         ("load_hesa_nn056_student_programs.py", "22056_20240331"),
@@ -48,6 +52,8 @@ def run_load_scripts(config):
         ("load_hesa_nn056_demographics.py", "23056_20250331"),
     ]
 
+    # Process main load tables. Processing breaks on exception as
+    # these tend to be catastrophic and indicate a deep problem.
     success = True
     for script, delivery_code in main_nn056_loads:
         script_path = f"{config['load_script_dir']}/{script}"
@@ -58,7 +64,9 @@ def run_load_scripts(config):
             success = False
             break
 
-    # Process look-up load tables
+    # Process lookup tables. Occurs independently of above success
+    # as they don't rely on extract phase and their success/failure
+    # is potentially useful in troubleshooting the above scripts.
     nn056_lookups = ["DISABILITY", "ETHNICITY", "GENDERID", "RELIGION", 
                      "SEXID", "SEXORT", "TRANS", "Z_ETHNICGRP1", "Z_ETHNICGRP2", "Z_ETHNICGRP3"]
 

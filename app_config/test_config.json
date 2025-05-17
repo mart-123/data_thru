@@ -8,6 +8,7 @@
         "deliveries": "deliveries",
         "bad_data": "bad_data",
         "transformed_data": "transformed",
-        "expected_data": "expected"
+        "expected_data": "expected",
+        "static_data": "static"
     }
 }

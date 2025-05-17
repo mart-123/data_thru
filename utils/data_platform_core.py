@@ -101,6 +101,7 @@ def get_config():
         config["bad_data_dir"] = os.path.join(data_dir, json_config["paths"]["bad_data"])
         config["transformed_dir"] = os.path.join(data_dir, json_config["paths"]["transformed_data"])
         config["expected_dir"] = os.path.join(data_dir, json_config["paths"]["expected_data"])
+        config["static_dir"] = os.path.join(data_dir, json_config["paths"]["static_data"])
 
         # 7. Declare script directories
         config["extract_script_dir"] = os.path.join(scripts_path, json_config["paths"]["extract_scripts"])

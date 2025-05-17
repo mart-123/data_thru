@@ -32,3 +32,5 @@ sources:
       - name: load_hesa_23056_20250331_lookup_z_ethnicgrp1
       - name: load_hesa_23056_20250331_lookup_z_ethnicgrp2
       - name: load_hesa_23056_20250331_lookup_z_ethnicgrp3
+
+      - name: load_hesa_delivery_metadata

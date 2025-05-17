@@ -1,3 +1,7 @@
+"""
+Utility script for generating test demographic data.
+Reads cleansed student file and generates randomised demographic data.
+"""
 import pandas as pd
 import random
 import os

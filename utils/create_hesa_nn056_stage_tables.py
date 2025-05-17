@@ -1,5 +1,5 @@
 """
-NOTE: Script deprecated due to stage tables being managed by DBT
+DEPRECATED due to stage tables being managed by DBT.
 This module creates HESA stage tables. Note the nn056 designation, these tables
 take a merge of multiple load tables each from 22056 onwards under the nn056 schema.
 """
