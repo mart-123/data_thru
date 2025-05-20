@@ -15,14 +15,15 @@ HESA data arrives periodically in annual submissions (e.g., "22056_20240331"). T
 ## Pipeline Phases
 ### Extraction
 Python scripts validate and cleanse the 'delivery' CSV files, performing:
-- Data cleansing and validation
+- Data cleansing and validation (e.g. date columns must be 'YYYY-MM-DD')
 - Column renaming and basic reformatting
 - Routing of invalid records to 'bad data' directory with reasons indicated
 - Output of valid records to 'transformed' directory ready for loading
 
 ### Loading
-Python scripts copy each 'transformed' CSV file and lookup file to a load table. 
+Python scripts copy each 'transformed' CSV file and lookup file to a load table.
 No significant logic is applied during this phase.
+MySQL casts date strings as DATE (previously validated for 'YYYY-MM-DD')
 
 ### Integration
 DBT staging models integrate data from multiple deliveries through:

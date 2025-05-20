@@ -10,6 +10,8 @@
         SELECT
             delivery_code,
             delivery_received,
+            delivery_version,
+            delivery_current,
             collection_ref,
             collection_sent,
             delivery_description,
@@ -21,6 +23,8 @@
         CONCAT('DEL_', delivery_code) as dim_hesa_delivery_key,
         delivery_code, -- Business key of HESA delivery
         delivery_received,
+        delivery_version,
+        delivery_current,
         collection_ref,
         collection_sent,
         delivery_description,

@@ -5,16 +5,24 @@ models:
     description: "List of datasets received from HESA along with the original data collection they each relate to."
     columns:
       - name: dim_hesa_delivery_key
-        data_type: varchar(30)
+        data_type: varchar(40)
         description: "Surrogate key structured DEL_<delivery_code>_ for human readability"
 
       - name: delivery_code
-        data_type: varchar(20)
+        data_type: varchar(36)
         description: "Identifier of HESA delivery, typically collection code + receipt date"
 
       - name: delivery_received
         data_type: timestamp
         description: "Date when the delivery was received"
+
+      - name: delivery_version
+        data_type: int
+        description: "Indicates delivery version in case there are multiple for a collection"
+
+      - name: delivery_current
+        data_type: char(1)
+        description: "Indicates current/active delivery if there are multiple for a collection"
 
       - name: collection_ref
         data_type: varchar(50)

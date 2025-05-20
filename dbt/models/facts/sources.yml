@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+- name: hesa
+  database: college_dev
+  schema: college_dev
+  tables:
+      - name: dim_date

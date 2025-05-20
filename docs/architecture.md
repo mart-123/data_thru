@@ -259,7 +259,7 @@ The system uses a structured logging approach implemented through `data_platform
 - **Testing strategy**: Automated testing at both load and stage levels
 
 ### General Implementation Decisions
-- **Human-readable dimension keys**: Composite surrogate keys (e.g., `ETH_10_22056_20240331`) that encode entity type, ID, and delivery code to improve traceability during troubleshooting
+- **Human-readable dimension keys**: Composite surrogate keys (e.g., `ETH_10_22056_20240331`) encode entity type, business key and delivery code. Makes keys easier to understand during troubleshooting. Also makes dimensional model resilient to dimensions being rebuilt without breaking foreign key references.
 - **Isolated pipeline phases**: Each pipeline phase (extract, load, stage, etc) runs in separate scripts rather than having fewer, more comprehensive scripts. This makes the codebase easier to reason about.
 - **Permanent tables**: Each pipeline phase writes to permanent tables rather than using views or CTEs. This supports troubleshooting, mid-pipeline restarts, and simpler scripts.
 

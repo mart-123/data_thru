@@ -85,8 +85,11 @@ nano docker-compose.yml
 docker-compose up -d
 ```
 
-4. Create load tables (for 22056, 23056, etc):
+4. Create dim_date and load tables (for 22056, 23056, etc):
 ```bash
+# IF NECESSARY, create and populate dim_date
+docker-compose run --rm app python3 utils/create_dim_date.py
+
 # Repeat for 22056, 23056, etc
 docker-compose run --rm app python3 utils/create_hesa_22056_load_tables.py
 ```
@@ -120,8 +123,11 @@ DB_NAME=college_dev
 
 3. Install dependencies: `pip install -r requirements.txt`
 
-4. Create load tables (for 22056, 23056, etc):
+4. Create dim_date and load tables (for 22056, 23056, etc):
 ```bash
+# IF NECESSARY, create and populate dim_date
+python3 utils/create_dim_date.py
+
 # Repeat for 22056, 23056, etc
 python3 utils/create_hesa_22056_load_tables.py
 ```

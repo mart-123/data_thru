@@ -21,8 +21,13 @@ models:
         description: "Business key for cross-delivery analysis, allows joining program data across multiple deliveries"
 
       - name: hesa_delivery
-        data_type: varchar(20)
+        data_type: varchar(36)
         description: "Unique identifier for a HESA data delivery in format 'YYXXX_YYYYMMDD' where YY=academic year, XXX=schema version, and YYYYMMDD=delivery date. Maintains data lineage and enables cross-delivery analysis."
+
+      - name: dim_hesa_delivery_key
+        data_type: varchar(40)
+        description: "Unique identifier for a HESA data delivery in format 'YYXXX_YYYYMMDD' where YY=academic year, XXX=schema version, and YYYYMMDD=delivery date. Maintains data lineage and enables cross-delivery analysis."
+
       - name: enrol_date
         data_type: date
         description: ""

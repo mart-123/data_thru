@@ -37,10 +37,18 @@ def run_extract_scripts(config):
 
 def run_load_scripts(config):
     print("Running loads...")
+    success = True
 
     # Process deliveries metadata file
-    script_path = f"{config['load_script_dir']}/load_hesa_delivery_metadata.py"
+    script = "load_hesa_delivery_metadata.py"
+    script_path = f"{config['load_script_dir']}/{script}"
+    print(f"Running load script: {script}")
     result = subprocess.run(["python3", script_path], capture_output=True, text=True)
+
+    if result.returncode != 0:
+        print(f"Error in {script}: {result.stderr}")
+        success = False
+        return success
 
     # Set up list of loads for main data files
     main_nn056_loads = [
@@ -54,9 +62,9 @@ def run_load_scripts(config):
 
     # Process main load tables. Processing breaks on exception as
     # these tend to be catastrophic and indicate a deep problem.
-    success = True
     for script, delivery_code in main_nn056_loads:
         script_path = f"{config['load_script_dir']}/{script}"
+        print(f"Running load script: {script}")
         result = subprocess.run(["python3", script_path, delivery_code], capture_output=True, text=True)
 
         if result.returncode != 0:
@@ -148,17 +156,44 @@ def run_dimension_scripts(config):
     return True
 
 
-def get_config_task():
-    return get_config()
+def run_fact_scripts(config):
+    print("Running DBT fact models...")
+
+    # Get start time for duration calculation
+    start_time = time.time()
+
+    # Run DBT dimension scripts
+    result = subprocess.run(
+        ["dbt", "run", "--models", "facts"],
+        cwd=config["dbt_project_dir"],
+        capture_output=True, text=True)
+
+    # Calculate execution time
+    execution_time = time.time() - start_time
+    print(f"DBT facts ran for {execution_time} seconds")
+
+    # Show DBT output for debugging
+    print(f"DBT output:\n{result.stdout}")
+
+    # Report errors
+    if result.returncode != 0:
+        print(f"Error in DBT facts: {result.stderr}")
+        return False
+
+    # Report success
+    print("DBT facts completed successfully")
+    return True
+
 
 
 def etl_flow():
-    config = get_config_task()
+    config = get_config()
 
     transform_success = False
     load_success = False
     stage_success = False
     dimension_success = False
+    fact_success = False
 
     transform_success = run_extract_scripts(config)
     if transform_success:
@@ -167,15 +202,16 @@ def etl_flow():
             stage_success = run_stage_scripts(config)
             if stage_success:
                 dimension_success = run_dimension_scripts(config)
+                if dimension_success:
+                    fact_success = run_fact_scripts(config)
     
     return {"transform success": transform_success,
             "load success": load_success,
             "stage success": stage_success,
-            "dimension success": dimension_success}
-
+            "dimension success": dimension_success,
+            "fact success": fact_success}
 
 def main():
-    config = get_config()
     results = etl_flow()
 
     if all(results.values()):

@@ -22,6 +22,8 @@ def generate_create_statements():
             CREATE TABLE load_hesa_delivery_metadata (
                 delivery_code VARCHAR(36) COMMENT 'Identifies a set of CSV files received from HESA',
                 delivery_received DATE COMMENT 'Date on which the CSV files were downloaded/received from HESA',
+                delivery_version INT COMMENT 'Indicates delivery version in case there are multiple for a collection',
+                delivery_current CHAR(1) COMMENT 'Indicates current/active delivery if there are multiple for a collection',
                 collection_ref VARCHAR(36) COMMENT 'Identifies collection (dataset sent by university to HESA) that the delivery relates to',
                 collection_sent DATE COMMENT 'Date on which the underlying collection was SENT to HESA',
                 delivery_description VARCHAR(250),
@@ -33,7 +35,7 @@ def generate_create_statements():
         'load_hesa_term_codes':
             """
             CREATE TABLE load_hesa_term_codes (
-                term_code VARCHAR(36) COMMENT 'University term code',
+                term_code VARCHAR(36) COMMENT 'Term code (YYYYNN, YYYY start year and NN end year)',
                 term_description VARCHAR(250) COMMENT 'Description of the term',
                 standard_start_date DATE COMMENT 'Standard start date of the term',
                 standard_end_date DATE COMMENT 'Standard end date of the term',

@@ -15,27 +15,31 @@ def basic_validation(config: dict, file_path: str):
     script should fail and stop the pipeline."""
     df = pd.read_csv(file_path, dtype=str)
 
-    # Check for missing delivery codes
-    blank_codes = df["delivery_code"].isna() | df["delivery_code"] == ""
-    bad_rows = df[blank_codes]
+    # Check for missing values
+    missing_codes = df["delivery_code"].isna() | df["delivery_code"] == ""
+    missing_versions = df["delivery_version"].isna() | df["delivery_version"] == ""
+    missing_currents = df["delivery_current"].isna() | df["delivery_current"] == ""
+    missing_values = (missing_codes | missing_versions | missing_currents)
+
+    bad_rows = df[missing_values]
     if not bad_rows.empty:
         raise ValueError("Blank delivery code(s) found in CSV file") 
 
     # Check for missing dates
-    missing_dates = (df["delivery_received"].isna() | df["delivery_received"] == "" |
-                     df["collection_sent"].isna() | df["collection_sent"] == "")
+    missing_dates = ((df["delivery_received"].isna()) | (df["delivery_received"] == "") |
+                     (df["collection_sent"].isna()) | (df["collection_sent"] == ""))
     bad_rows = df[missing_dates]
     if not bad_rows.empty:
         raise ValueError("Delivery or collection date(s) missing in CSV file")
 
     # Validate dates for yyyy-mm-dd format
     good_delivery_date_series = df["delivery_received"].apply(lambda x: is_valid_date(x))
-    bad_rows = ~df[good_delivery_date_series]
+    bad_rows = df[~good_delivery_date_series]
     if not bad_rows.empty:
         raise ValueError("Delivery date(s) do not have YYYY-MM-DD format")
 
     good_collection_date_series = df["collection_sent"].apply(lambda x: is_valid_date(x))
-    bad_rows = ~df[good_collection_date_series]
+    bad_rows = df[~good_collection_date_series]
     if not bad_rows.empty:
         raise ValueError("Collection date(s) do not have YYYY-MM-DD format")
 
@@ -60,6 +64,8 @@ def main():
     column_mappings = {
         "delivery_code": "delivery_code",
         "delivery_received": "delivery_received",
+        "delivery_version": "delivery_version",
+        "delivery_current": "delivery_current",
         "collection_ref": "collection_ref",
         "collection_sent": "collection_sent",
         "delivery_description": "delivery_description"
