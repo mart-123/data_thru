@@ -1,27 +1,32 @@
 # Data Warehouse: Star Schema
 The star schema design includes dimension and fact tables as visualised below. For detailed column descriptions and business rules, see the DBT YAML definitions in [`dbt/models/schema.yml`](../dbt/models/schema.yml).
 
+<div style="margin: 1em 0; min-height: 20px;"></div>
+
 ## Compound dimension keys
 Each dimension has a surrogate key with a human-readable pattern: `<dim_code>_<business_key>_<delivery>` (e.g., `PGM_<guid>_22056_20240331`)
 
 This supports troubleshooting and also enables dimension rebuilds without breaking foreign key references.
+
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 ## Delivery-Aware Dimensions
 - Delivery Code uniquely identifies each tranche of CSV files received from HESA.
 - It is a composite value incorporating the receipt date.
 - It is stored in warehouse tables as column `hesa_delivery`
 - Each student/program/ethnicity code/etc has discrete data per delivery.
-- Dimensions contain delivery code in their surrogate key to support readability.
 
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
-## Inter-Delivery Mappings
-- Dimensions have delivery code as part of their PK.
-- Delivery Code uniquely identifies each tranche of CSV files received from HESA.
-- It is a composite value incorporating the receipt date.
-- It is stored in warehouse tables as column `hesa_delivery`
-- This allows each student/program/ethnicity code/etc to have different data per delivery.
-- Dimensions also contain the delivery code in their surrogate key
+## Inter-Delivery Canonical Mappings
+- Look-up codes such as religion may vary between HESA deliveries due to wording changes.
+- For example, old ethnicity code '101 (white british)' could be replaced with new '601 (british white)'.
+- Report writers need to report on historical trends even when data is categorised with new/old values.
+- This is handled using 'canonical keys' which define a common key (e.g. 101/601 may each have canonical key 601).
+- Data analysts supply canonical mappings in a CSV file, some wrangling required by data engineer.
+- The mappings are loaded into the required dimension as a 'canonical key'.
 
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 ## Star Schema ERD
 
@@ -67,7 +72,7 @@ erDiagram
         int year
         int month
         varchar month_name
-        boolean is_weekend
+        int weekend
     }
     
     FACT_HESA_STUDENT_PROGRAMS {
@@ -78,6 +83,8 @@ erDiagram
         boolean fees_paid_bool
     }
 ```
+
+<div style="margin: 1em 0; min-height: 20px;"></div>
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>

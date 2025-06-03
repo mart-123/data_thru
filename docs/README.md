@@ -22,8 +22,8 @@ This README provides a high-level overview. For detailed information, please see
 * [Data Deliveries](data-deliveries.md) - Format and structure of input data
 * [Data Model](data-model.md) - Star schema and dimension details
 * [Pipeline Process](pipeline-process.md) - ETL workflow and processing steps
-* [HESA Data Info](hesa-data-info.md) - Background on the higher education data
-* [Development Guide](development-guide.md) - Contributing to the project
+* [HESA Data Info](hesa-data-info.md) - Background on the HESA higher education dataset
+* [Development Guide](development-guide.md) - Downloading, configuring and running the project
 
 
 <div style="margin: 1em 0; min-height: 20px;"></div>
@@ -31,9 +31,10 @@ This README provides a high-level overview. For detailed information, please see
 
 ## Key Features
 - **Multi-delivery data pipeline**: Handles multiple yearly HESA data deliveries with version tracking
-- **Quality-assured data flow**: Validates, cleanses and transforms student demographics and enrolment data
-- **Dimensional data model**: Star schema with surrogate keys that maintain data lineage
-- **Automated testing**: Component tests for data transformations with comparison against expected results
+- **Data quality measures**: Data is cleansed, validated and filtered with detailed error information
+- **Dimensional data model**: Star schema for reporting
+- **Canonical key mapping**: Supports trend analysis across datasets with different look-up categories
+- **Automated testing**: Detailed component test cases with comparison against expected results
 - **Containerised deployment**: Docker and Docker Compose for consistent execution environments
 
 
@@ -44,9 +45,9 @@ This README provides a high-level overview. For detailed information, please see
 The solution implements a complete data pipeline with these components:
 
 - **Python extraction layer**: Validates raw data, applies field-level transformations, isolates bad data
-- **MySQL database**: Stores load tables, stage tables, and dimensional model
-- **DBT transformation layer**: Handles staging, integration, and dimensional modelling
-- **Docker infrastructure**: Containerises both database and application components
+- **MySQL database**: Stores load tables, stage tables and dimensional model
+- **DBT transformation layer**: Handles staging, integration and dimensional modelling
+- **Docker infrastructure**: Containerises database and application components, orchestrated with Docker Compose
 
 It reflects real-world practices as could be found in a university data warehouse.
 

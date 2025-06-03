@@ -119,6 +119,10 @@ This approach provides detailed data quality information for remediation, and im
 │   │   │   └── 23056_20250331/
 │   │   │       └── ... (transformed files)
 │   │   │
+│   │   ├── mappings/
+│   │   │   ├── lookup_mappings_ethnicity.csv
+│   │   │   └── ... (other mapping files)
+│   │   │
 │   │   └── bad_data/
 │   │       ├── 22056_20240331/
 │   │       │   ├── hesa_22056_20240331_students_bad_data.csv

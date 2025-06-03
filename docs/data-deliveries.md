@@ -30,15 +30,19 @@ HESA enriches the data with statistical data and 'delivers' an enriched dataset 
 - These can be identified by the academic year of the data (e.g. '22' means 202223 data)
 - These are currently annual but may in future become intra-year
 
-### HESA Schemas
-- Prior to 2022, HESA used an arbitrary CSV file layouts
-- In 2022 HESA published a stable schema called 'Data Futures' that should remain stable for consecutive years
-- Stable schema '056' is for 2022 onwards, schema '057' will be used from 2028
-
 ### CSV Deliveries
-- HESA enriches collected data and returns it to each university a set of CSV files
+- HESA enriches the collected data and delivers it back to each university
+- It is returned as a set of CSV files
 - HESA may deliver revised versions of a dataset if errors occurred
 - Every initial/revised data delivery should be preserved in the warehouse
+
+### HESA Schemas
+- 'HESA Schema' refers to HESA's internal 3NF model for student data
+- Its structure can affect the shape of the CSV data delivery
+- Prior to 2022, the HESA schema evolved each year
+- In 2022 HESA published a stable schema called 'Data Futures', to remain stable for several years
+- Stable schema '056' is for 2022 onwards, schema '057' will be used from 2028
+
 
 
 <div style="margin: 2em 0; min-height: 30px;"></div>
@@ -61,7 +65,7 @@ For example:
 
 
 ## CSV Directory Structure
-Each data delivery has its own 'deliveries' sub-directory, and the data flow into 'transformed' or 'bad data' directories for further processing. Please see `architecture.md` for directory structure.
+Each data delivery is copied into its own sub-directory within a 'deliveries' directory. The ETL pipeline moves validated data into a 'transformed' directory for loading into the warehouse. Bad data flows into a 'bad data' directory for exception reporting. Please see `architecture.md` for directory structure.
 
 
 <div style="margin: 2em 0; min-height: 30px;"></div>
@@ -94,12 +98,13 @@ The HESA delivery concept impacts various aspects of the data architecture and p
 - Each year HESA collects data and delivers an enriched version
 - Each delivery is linked to its original collection year (`collection_code` '22056', '23056', '24056', etc)
 - The warehouse team manually assigns a `delivery_code` by adding date of receipt to the collection code (e.g. '22056_20240331')
-- Each delivery has a separate sub-directory in `data/deliveries`
+- Each delivery has a separate sub-directory in `<host>/data/deliveries`
 
 ### Look-up Tables
-- HESA CSV files contain additional, coded values such as ethnicity, religion codes
-- Look-up tables per code are available on the HESA website
-- Warehouse team must download those look-up tables and copy to same subdir as main CSV files
+- HESA CSV files contain coded values such as ethnicity, religion codes
+- Look-up lists are available on the HESA website as CSV files
+- Warehouse team download look-up lists and copy to same sub-directory as main CSV files
+- If canonical mappings are required, these can be wrangled using `lookup_mappings_ethnicity` as an example
 
 ### How Delivery Code Affects Database Structure
 - A set of load tables is created for every HESA delivery
@@ -108,14 +113,15 @@ The HESA delivery concept impacts various aspects of the data architecture and p
 - Each dimension table has a compound natural key including `hesa_delivery`
 
 ### Pipeline Processing
-- Orchestration scripts ensure pipeline is executed for each HESA delivery
-- Staging models combine deliveries using UNION operations
-- Dimension models maintain delivery context in surrogate keys
+- Orchestration script `hesa_nn056_pipelines.py` handles pipeline execution per HESA delivery
+- Extract/load is via Python scripts parameterised per delivery code
+- DBT staging combine deliveries using UNION operations
+- Dimensional model maintains delivery context in surrogate keys
 
 ### Data Access
 - Queries can filter on specific deliveries or span multiple deliveries
 - Reports can compare data across different deliveries
-
+- Changing look-up codes can be compared across deliveries via canonical keys
 
 <div style="margin: 2em 0; min-height: 30px;"></div>
 
@@ -124,7 +130,7 @@ The HESA delivery concept impacts various aspects of the data architecture and p
 When new delivery is received:
 - Create load tables via scripts like `create_hesa_23056_load_tables.py`
 - Update staging models to UNION the new load tables
-- Add extract/load steps to Prefect orchestrator
+- Add extract/load steps to orchestration script (`hesa_nn056_pipeline.py` or new script if new HESA schema)
 
 
 <div style="margin: 2em 0; min-height: 30px;"></div>
