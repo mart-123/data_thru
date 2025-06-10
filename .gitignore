@@ -1,10 +1,7 @@
 #ignore data and config folders
-data/
-data_test/
 venv_dev/
 logs/
 .env
-docker-compose.yml
 
 # VS Code personal settings
 .vscode/settings.json
@@ -21,11 +18,8 @@ dbt_packages/
 target/
 .dbt/
 dbt-env/
-dbt_modules/
-logs/
 
 # Secrets and credentials
-profiles.yml
 daily.md
 
 # Temporary files

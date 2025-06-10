@@ -1,0 +1,12 @@
+dbt_hesa_project:
+  target: dev
+  outputs:
+    dev:
+      type: mysql
+      server: "{{ env_var('DB_HOST') }}"
+      port: "{{ env_var('DB_PORT') | as_number }}"
+      database: "{{ env_var('DB_NAME') }}" # optional - if present, should match schema
+      schema: "{{ env_var('DB_NAME') }}"
+      username: "{{ env_var('DB_USER') }}"
+      password: "{{ env_var('DB_PWD') }}"
+      charset: utf8mb4

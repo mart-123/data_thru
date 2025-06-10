@@ -90,11 +90,8 @@ def get_config():
         scripts_path = os.path.join(base_dir, json_config["paths"]["scripts_base"])
         dbt_path = os.path.join(base_dir, json_config["paths"]["dbt_base"])
 
-        # 5. Declare log directories/files (using environment name parameter)
-        env = json_config["environment"]
+        # 5. Declare log directory
         config["log_dir"] = log_dir
-        config["env"] = env
-        print(f"environment: {env}")
 
         # 6. Declare data directories
         config["deliveries_dir"] = os.path.join(data_dir, json_config["paths"]["deliveries"])

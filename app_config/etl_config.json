@@ -1,5 +1,4 @@
 {
-    "environment": "test",
     "paths": {
         "scripts_base": "ingest",
         "dbt_base": "dbt",

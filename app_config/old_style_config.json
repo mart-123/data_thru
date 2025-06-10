@@ -1,9 +1,0 @@
-{
-    "log_dir": "logs",
-    "data_dir": "data_test",
-    "etl_script_dir": "src/etl",
-    "extracts_dir": "data_test/extracts",
-    "bad_data_dir": "data_test/bad_data",
-    "transformed_dir": "data_test/transformed",
-    "lookups_dir": "data_test/lookups"
-}

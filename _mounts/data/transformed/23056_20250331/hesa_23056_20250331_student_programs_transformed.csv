@@ -1,0 +1,3 @@
+student_guid,email,program_guid,program_code,program_name,enrol_date,fees_paid
+994A111B-6C6E-9998-E502-55A9E522E42B,urna.nunc.quis@yahoo.net,0A769638-3799-86C6-BBBB-38BEBE2487D1,ENG10001,BA English Lit,2023-02-09,N
+DA9C5319-3EAE-0B29-BBF8-23E773298398,changed.email@provider.org,0A769638-3799-86C6-AAAA-38BEBE2487D1,COM20002,BSc Computer Science,2023-12-07,Y

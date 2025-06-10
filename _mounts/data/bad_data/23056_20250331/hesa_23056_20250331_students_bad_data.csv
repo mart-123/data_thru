@@ -1,0 +1,2 @@
+stu_id,phone,email,home_address,home_postcode,home_country,term_address,term_postcode,term_country,name,dob,failure_reasons
+994A111B-6C6E-9998-E502-55A9E522E42B,0800 1111,,no email,27235,Pakistan,676-8952 Suspendisse St.,57271,Peru,Ray Acevedo,1991-08-26,missing id/phone/email/name/dob; badly formatted email address

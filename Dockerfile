@@ -12,7 +12,7 @@ RUN apt-get update && \
 
 # Install Python dependencies and DBT
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt dbt-core dbt-mysql prefect
+RUN pip install --no-cache-dir -r requirements.txt dbt-core dbt-mysql
 
 # Copy application code
 COPY . .

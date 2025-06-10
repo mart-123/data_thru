@@ -57,6 +57,20 @@ It reflects real-world practices as could be found in a university data warehous
 
 ## Getting Started
 
+### Note on Python Commands
+This documentation uses `python` to refer to the Python interpreter command. Depending on your system:
+- On Windows: Use `python` 
+- On some Linux/Mac systems: You might need to use `python3` if both Python 2 and 3 are installed
+
+Example:
+```bash
+# Windows
+python utils/create_dim_date.py
+
+# Some Linux/Mac systems with both Python 2 & 3
+python3 utils/create_dim_date.py
+```
+
 ### Prerequisites
 1. Clone the repository
 ```bash
@@ -64,101 +78,102 @@ It reflects real-world practices as could be found in a university data warehous
    cd data_thru
 ```
 
-2. Create log and data directory structures described in `architecture.md`
-
-3. Create delivery directory (e.g. `data/deliveries/22056_20240331/`) and copy HESA CSV files there
+2. Create `.env` file based on `.env.example`
 
 
 ### Option 1: Containerised Execution (Recommended)
 
-1. Configure volume mappings in docker-compose.yml to match your local paths:
+1. If required, set data and log mappings in `docker-compose.yml` to match local directories (for quick test run, no changes needed):
 ```bash
 # Update these paths to match your environment:
-#  [your-data-path]:/data
-#  [your-log-path]:/log
+#  [your_data_location]:/app/_mounts/data
+#  [your_logs_location]:/app/_mounts/logs
 nano docker-compose.yml
 ```
 
-2. Customise MySQL credentials in `docker-compose.yml` (for both services/containers).
+2. Customise MySQL credentials in `.env`.
 
 3. Start MySQL container
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 4. Create dim_date and load tables (for 22056, 23056, etc):
 ```bash
-# IF NECESSARY, create and populate dim_date
-docker-compose run --rm app python3 utils/create_dim_date.py
+# If necessary, create and populate dim_date
+docker compose run --rm app python utils/create_dim_date.py
 
 # Repeat for 22056, 23056, etc
-docker-compose run --rm app python3 utils/create_hesa_22056_load_tables.py
+docker compose run --rm app python utils/create_hesa_22056_load_tables.py
 ```
 
 5. Run containerised ETL pipeline: 
 ```bash
-# Run ETL pipeline (also starts MySQL if necessary)
-docker compose --profile etl up -d
+# Run ETL pipeline (--build if running for first time)
+docker compose --profile etl up --build -d
 
-# To re-run pipeline if container already running
-docker-compose run --rm app python3 flows/hesa_nn056_pipeline.py
+# To manually re-run pipeline in temporary container (without restarting everything)
+docker compose run --rm app python flows/hesa_nn056_pipeline.py
 ```
-
 
 ### Option 2: Local Development Setup
 
 1. Install MySQL and create a database for the project.
 
-2. Create `.env` file with these variables:
-```bash
-BASE_DIR=/path/to/project-root
-DATA_DIR=/path/to/data
-LOG_DIR=/path/to/log
-CONFIG_FILE=/path/to/project/app_config/test_config.json
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=dev_user
-DB_PWD=dev_user_pwd
-DB_NAME=college_dev
-```
+2. Customise MySQL credentials in `.env`.
 
-3. Install dependencies: `pip install -r requirements.txt`
+3. Set up Python environment:
+```bash
+# Create virtual environment
+python -m venv venv_dev
+
+# Activate virtual environment
+# On Linux/Mac:
+source venv_dev/bin/activate
+# On Windows:
+# venv_dev\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
 
 4. Create dim_date and load tables (for 22056, 23056, etc):
 ```bash
-# IF NECESSARY, create and populate dim_date
-python3 utils/create_dim_date.py
+# If necessary, create and populate dim_date
+python utils/create_dim_date.py
 
 # Repeat for 22056, 23056, etc
-python3 utils/create_hesa_22056_load_tables.py
+python utils/create_hesa_22056_load_tables.py
 ```
 
-5. Run pipeline: `python3 flows/hesa_nn056_pipeline.py`
+5. Run pipeline: `python flows/hesa_nn056_pipeline.py`
 
 
 ### Checking Results
-1. Monitor execution and check table/row count details via log file:
+1. Check extract and load logs:
 ```bash
-# Check detailed log
-cat [your-log-path]/test/etl_info.log
-
-# Check error log
-cat [your-log-path]/test/etl_error.log
+#  (default location <local repo>/data_thru/_mounts/logs)
+cat [your_mounted_path]/logs/etl_info.log
+cat [your_mounted_path]/logs/etl_error.log
 ```
 
-2. Check DBT logs
+2. Check DBT transformation logs:
+For local execution these are written to the console.
 ```bash
-# View DBT logs if containerised
-docker-compose logs -f app
+# View container output including DBT stages/dimensions/facts
+docker logs data-thru-etl-app
 
-# (they otherwise appear in stdout in the shell)
+# For live monitoring (follow mode)
+docker logs -f data-thru-etl-app
 ```
 
-3. Check for data quality exceptions (e.g. `data/bad_data/*.csv/`)
+3. Check for data quality exceptions (e.g. `[your_mounted_path]/data/bad_data/*.csv/`)
 
-4. Run queries against the dimensional model
+4. Run queries against the dimensional model to validate results.
+
 
 <div style="margin: 1em 0; min-height: 20px;"></div>
+
 
 ## Automated Testing
 A suite of component test scripts and expected results has been build in `/tests/component/`
@@ -166,13 +181,13 @@ A suite of component test scripts and expected results has been build in `/tests
 to run an individual test script (with detailed console output):
 ```bash
 # --run-etl : if present, test script first runs the script it is testing
-python3 -m tests.component.run_component_tests
+python -m tests.component.run_component_tests
 ```
 
 To run all component test scripts:
 ```bash
 # --run-etl : if present, each test scripts first run the script it is testing
-python3 -m tests.component.run_component_tests --run-etl
+python -m tests.component.run_component_tests --run-etl
 ```
 
 

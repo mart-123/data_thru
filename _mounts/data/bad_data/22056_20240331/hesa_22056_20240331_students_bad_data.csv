@@ -1,0 +1,15 @@
+stu_id,phone,email,home_address,home_postcode,home_country,term_address,term_postcode,term_country,name,dob,failure_reasons
+,0800 1111,no@stu.id,256-5365 Netus Road 05154,12345,Vietnam,Ap #491-6155 Fringilla Rd.,32687813,Brazil,Vincent Brooks,1997-07-28,missing id/phone/email/name/dob
+A5514A52-5491-333D-D1C9-7CB8673ACDE6,,no@phone.num,Ap #885-4708 Adipiscing Avenue,9618 OL,Sweden,"4903 Elit, Rd.",47988-99513,Indonesia,Kameko Gallagher,1977-02-02,missing id/phone/email/name/dob
+994A111B-6C6E-9998-E502-55A9E522E42B,0800 1111,,no email,27235,Pakistan,676-8952 Suspendisse St.,57271,Peru,Ray Acevedo,1991-08-26,missing id/phone/email/name/dob; badly formatted email address
+286D124A-87C5-3C7D-7218-687E18397EA2,07393 627478,no@home.addr,,28876,Norway,789-8810 Convallis Av.,17648,Italy,Cleo Farrell,1963-04-03,missing home addr data
+1A2DDEED-79DE-C5CA-BC86-8C113C0255D8,(014413) 53998,no@home.postcode,2131 Quam Road,,Vietnam,117-7783 Dui. Rd.,390284,Belgium,Xantha Mclean,1953-11-22,missing home addr data
+714DA36F-84E2-C90D-E5D0-3551B19B09B3,07231 942341,no@home.country,"1677 Ac, Road",45-24,,"P.O. Box 260, 3392 Phasellus St.",3306,Turkey,Brielle Johnston,2001-09-25,missing home addr data
+5D01E2A9-EEA7-3D2A-156B-93357B5A80CC,0845 46 43,no@term.addr,5700 Cras Avenue,326102,Netherlands,,31557,Indonesia,Warren Peck,1979-09-20,missing term addr data
+A7E31E3E-FF53-79C9-F1F6-6ACE79B8C3C8,07624 257528,no@term.postcode,Ap #865-5794 Vivamus Rd.,3555,Philippines,962-4479 Elit. Rd.,,France,Vivian Watson,1976-07-01,missing term addr data
+5B1DF9AF-BA98-2645-6869-D24F32D44DA2,076 5332 7558,no@term.country,163-1068 Molestie Av.,32355,Russian Federation,344-9599 Dictum Rd.,13515,,Jackson Bowers,1946-04-06,missing term addr data
+DA383EB2-28EA-8596-EA62-0D562A427423,(0111) 638 5311,no@name.atall,220-9732 Varius Rd.,724851,Mexico,674-3496 Tincidunt Rd.,874915,South Korea,,1970-09-23,missing id/phone/email/name/dob
+A8AFE87E-B50E-8A21-E4DB-A53D7298FB92,055 3541 6197,no@dateof.birth,995-1388 Massa. Rd.,81544,Indonesia,198-5409 Ante. Road,59613,Costa Rica,Shea Mcgee,,missing id/phone/email/name/dob; bad format dob; invalid dob
+5E809209-A56F-9293-A9EB-EF67A9DF35AA,0962 242 8490,wrong@format.dob,Ap #159-7030 Nunc Rd.,385967,Costa Rica,181-5623 Eu St.,66428,South Africa,Savannah Lang,23-12-1958,bad format dob; invalid dob
+10203040-5060-7080-A9EB-ABABA9DFADCF,0962 242 8490,not@possible.dob,Ap #999-1235 Nunc Rd.,385967,Somewhere,181-5623 Eu St.,66428,South Africa,Sonoros Long,2001-02-30,invalid dob
+47912D6D-15A8-256E-CD9D-91C6CA7C3571,0845 46 45,email-bad-format,5455 Vel Rd.,S8P 0R4,Brazil,Ap #131-6779 Integer Ave,14803,Russian Federation,Ulla Houston,1958-10-16,badly formatted email address

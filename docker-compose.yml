@@ -1,0 +1,52 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command: --performance-schema=OFF --innodb-buffer-pool-size=256M
+    ports:
+      - "3307:3306" # External port (3307) maps to internal default port 3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # IMPORTANT: Config below should be reflected in .env for local execution
+  app:
+    build: . # Look for Dockerfile in current directory
+    container_name: data-thru-etl-app
+    user: "${UID:-1000}:${GID:-1000}" # avoid root-owned files
+    profiles:
+      - etl
+      - full
+    depends_on:
+      - mysql
+    volumes:
+      - ./_mounts/logs:/app/_mounts/logs:rw,z # pipeline & DBT logs
+      - ./app_config:/app/app_config:ro # main application config
+      - ./dbt:/app/dbt # DBT profiles, models, etc
+      - ./_mounts/data:/app/_mounts/data:rw,z # internal mount with test data
+      # example local data mount
+      # /home/dir/data/data_thru/data_test:_mounts/data
+
+    environment:
+      # Infrastructure settings (for Python ETL and DBT profiles)
+      - DB_HOST=mysql # Service name in Compose
+      - DB_PORT=3306 # Internal port managed by Compose
+
+      # Sensitive information (inherited from .env)
+      - DB_USER=${DB_USER}
+      - DB_PWD=${DB_PWD}
+      - DB_NAME=${DB_NAME}
+
+      # Main application settings
+      - BASE_DIR=/app
+      - DATA_DIR=/app/_mounts/data
+      - LOG_DIR=/app/_mounts/logs
+      - DBT_LOG_PATH=/app/_mounts/logs
+      - DBT_PROFILES_DIR=/app/dbt/profiles
+      - CONFIG_FILE=/app/app_config/etl_config.json
+volumes:
+  mysql_data:

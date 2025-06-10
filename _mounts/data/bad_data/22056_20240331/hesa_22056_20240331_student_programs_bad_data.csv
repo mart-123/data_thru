@@ -1,0 +1,9 @@
+stu_id,email,program_id,program_code,program_name,enrol_date,fees_paid,failure_reasons
+,no@stu.id,0A769638-3799-86C6-AAAA-38BEBE2487D1,COM20002,BSc Computer Science,2022-01-01,y,mandatory data missing
+0A769638-3799-86C6-4135-38BEBE2487D1,badempty@fees.paid,0A769638-3799-86C6-AAAA-38BEBE2487D1,COM20002,BSc Computer Science,2022-29-29,,mandatory data missing; invalid enrol date; bad fees flag
+946DDBBE-3BB6-48AF-8B5E-17998281403E,badmissing@pgmcode.ca,0A769638-3799-86C6-AAAA-38BEBE2487D1,,BSc Computer Science,2022-02-25,N,mandatory data missing
+6C76C84B-CD3D-1377-D8FA-80B44B5884DB,badmissing@pgmguid.org,,ENG10001,BA English Lit,2022-08-10,Y,mandatory data missing
+E38961D5-C2EA-A189-93DB-8AA63F5378BB,bad.missing@pgmname.ca,0A769638-3799-86C6-CCCC-38BEBE2487D1,MED12345,,2022-09-08,Y,mandatory data missing
+ABC961D5-C2EA-A189-93DB-8AA63F5378BB,invalid@enrol.date,0A769638-3799-86C6-CCCC-38BEBE2487D1,MED12345,Test pgm,2022-02-30,Y,invalid enrol date
+DEF961D5-C2EA-A189-93DB-8AA63F5378BB,bad@enroldate.format,0A769638-3799-86C6-CCCC-38BEBE2487D1,MED12345,Test pgm,20-02-2022,Y,bad format enrol date; invalid enrol date
+FAF961D5-C2EA-A189-93DB-8AA63F5378AA,missing@enrol.date,0A769638-3799-86C6-CCCC-38BEBE2487D1,MED12345,Test pgm,,Y,mandatory data missing; bad format enrol date; invalid enrol date

@@ -5,3 +5,4 @@ logs/
 **/*.xlsx
 **/*.db
 .env
+_mounts/

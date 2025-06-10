@@ -1,0 +1,2 @@
+stu_id,email,program_id,program_code,program_name,enrol_date,fees_paid,failure_reasons
+,no@stu.id,0A769638-3799-86C6-AAAA-38BEBE2487D1,COM20002,BSc Computer Science,2023-01-01,y,mandatory data missing
