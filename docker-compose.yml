@@ -11,9 +11,10 @@ services:
     ports:
       - "3307:3306" # External port (3307) maps to internal default port 3306
     volumes:
+      - ./init:/docker-entrypoint-initdb.d # runs permissions script
       - mysql_data:/var/lib/mysql
 
-  # IMPORTANT: Config below should be reflected in .env for local execution
+  # IMPORTANT: When changing environment vars below, .env may need those changes
   app:
     build: . # Look for Dockerfile in current directory
     container_name: data-thru-etl-app
@@ -24,12 +25,12 @@ services:
     depends_on:
       - mysql
     volumes:
+      - .:/app # top-level code directory (avoids rebuild after code changes)
       - ./_mounts/logs:/app/_mounts/logs:rw,z # pipeline & DBT logs
       - ./app_config:/app/app_config:ro # main application config
       - ./dbt:/app/dbt # DBT profiles, models, etc
       - ./_mounts/data:/app/_mounts/data:rw,z # internal mount with test data
-      # example local data mount
-      # /home/dir/data/data_thru/data_test:_mounts/data
+      # /home/dir/data/data_thru/data_test:_mounts/data # example data mount
 
     environment:
       # Infrastructure settings (for Python ETL and DBT profiles)

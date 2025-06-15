@@ -1,4 +1,25 @@
 # Scripts
+## Utility Scripts
+### init/10-permissions.sql
+- Grants read permission to the ETL userid on ALL host names
+- Allows tables created by local scripts to be accessed by containerised scripts using the same userid
+- Is invoked automatically when MySQL container created by Docker Compose
+
+## Shell Scripts
+### /setup.sh
+Various initialisation to run upon cloning the project:
+- Sets userid environment variables for Docker
+- Creates and sets permissions for log files
+- Sets permissions for bundled data directory
+- Gets DBT dependencies
+- Start MySQL container
+- Create load tables and dim_date
+
+### /run.sh
+Utility script for running scripts:
+- First appends current directory to PYTHONPATH
+- Optional argument of script name, defaults to main ETL pipeline
+
 ## Extract Scripts
 ### /flows/hesa_nn056_pipeline.py
 Main pipeline orchestration script.
@@ -167,11 +188,13 @@ Fact tables connect dimensions and store measures.
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
-  <a href="README.md">Home</a> 
+  <a href="README.md">Home</a> |
   <a href="architecture.md">Architecture</a> |
+  <a href="container-first.md">Container First</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
-  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="getting-started.md">Getting Started</a> |
   <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
   <a href="scripts.md">Scripts</a>
 </div>

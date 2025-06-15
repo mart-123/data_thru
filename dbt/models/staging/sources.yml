@@ -2,8 +2,8 @@ version: 2
 
 sources:
 - name: hesa
-  database: college_dev
-  schema: college_dev
+  database: uni_dwh_db
+  schema: uni_dwh_db
   tables:
       - name: load_hesa_22056_20240331_students
       - name: load_hesa_22056_20240331_student_programs

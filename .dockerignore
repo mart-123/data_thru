@@ -1,8 +1,15 @@
-data_test/
-data/
-logs/
-**/*.csv
-**/*.xlsx
-**/*.db
+# Git
+.git/
+.gitignore
+
+# Environment variables are brought in from .env by Docker Compose
 .env
+
+# venv files not required in Docker container
+venv_dev/
+
+# Documentation
+docs/
+
+# Data volumes (these are replaced by Docker Compose mappings)
 _mounts/

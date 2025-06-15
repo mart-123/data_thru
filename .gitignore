@@ -3,6 +3,11 @@ venv_dev/
 logs/
 .env
 
+# generated files
+_mounts/logs/*.log
+_mounts/data/bad_data
+_mounts/data_transformed
+
 # VS Code personal settings
 .vscode/settings.json
 
@@ -14,8 +19,8 @@ __pycache__/
 .pytest_cache/
 
 # DBT specific
-dbt_packages/
-target/
+dbt/dbt_packages/
+dbt/target/
 .dbt/
 dbt-env/
 

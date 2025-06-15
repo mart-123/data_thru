@@ -20,6 +20,21 @@ This document describes the architecture of the HESA data warehouse, including i
 <div style="margin: 2em 0; min-height: 20px;"></div>
 
 
+## Containerisation Strategy
+
+This project implements a container-first architecture where all execution occurs within Docker containers rather than directly on host machines. Key aspects include:
+
+- Service isolation through dedicated containers (ETL, MySQL)
+- Inter-service communication via Docker network (app→mysql via internal hostnames)
+- Code/data provided to ETL container via volume mounts
+- Development workflow optimized for container execution
+
+This approach ensures consistent execution and eliminates configuration issues across multiple host machines.
+
+
+<div style="margin: 2em 0; min-height: 20px;"></div>
+
+
 ## Pipeline Diagram
 ```mermaid
 graph TD
@@ -92,9 +107,10 @@ This approach provides detailed data quality information for remediation, and im
 
 
 ## Directory Structure for Data and Logs
+Data and log directories are located within a `_mounts` directory in the project. This allows a small, test dataset to be bundled in the repo. These can be mapped via `docker-compose.yml` to other locations. 
 ```
-<local-data-path>/
-├── data_thru/
+<data_thru>/
+├── _mounts/
 │   ├── data/
 │   │   ├── deliveries/
 │   │   │   ├── 22056_20240331/
@@ -169,22 +185,23 @@ This approach enables:
 
 
 ## Docker Containerisation
-The warehouse is containerised using Docker (local execution also supported during development):
 
 - **Multi-Container Structure**:
   - MySQL container for database storage
-  - Application container for pipeline execution
+  - Application container for ETL pipeline execution
+  - Containers communicate via Docker Compose network
 
-- **Volume Mapping**:
-  - Data directories mapped to host for persistence
-  - Log directories mounted to facilitate easier debugging
-  - DBT profiles directory mounted to provide database connection information
+- **Docker Volume Mapping**:
+  - MySQL data directory mapped to host for persistence
+  - Pipeline data directories mapped for flexibility
+  - Log directories mapped to host for easier debugging
+  - DBT profiles mounted for consistent database connection
 
 - **Configuration**:
-  - Database connection parameters passed via variables (for containerised execution)
-  - Database connection parameters stored in `.env` file (for local execution)
-  - Application config stored in `config.json` file
-  - Data and log directories mounted via Docker Compose script
+  - Main ETL configuration is stored in `config.json` file
+  - Database connection and ETL config file location are specified in `.env`
+  - `.env` config is loaded by `docker-compose.yml` during build 
+  - Data, log and source code directories are mounted via `docker-compose.yml`
 
 This approach enables consistent deployment while maintaining flexibility for local development.
 
@@ -270,11 +287,13 @@ The system uses a structured logging approach implemented through `data_platform
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
-  <a href="README.md">Home</a> 
+  <a href="README.md">Home</a> |
   <a href="architecture.md">Architecture</a> |
+  <a href="container-first.md">Container First</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
-  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="getting-started.md">Getting Started</a> |
   <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
   <a href="scripts.md">Scripts</a>
 </div>

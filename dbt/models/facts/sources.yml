@@ -2,7 +2,7 @@ version: 2
 
 sources:
 - name: hesa
-  database: college_dev
-  schema: college_dev
+  database: uni_dwh_db
+  schema: uni_dwh_db
   tables:
       - name: dim_date

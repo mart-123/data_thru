@@ -31,6 +31,12 @@
 - Refactored code to simplify config
 - Canonical keys to enable cross-delivery reporting
 
+### June 2025: 
+Fresh deployment on new machine revealed MySQL permission and DBT config issues
+Migrated to container-first architecture with execution wrappers
+Implemented MySQL 8.0+ compliant user management
+Streamlined on-boarding setup guide and comprehensive setup scripts
+
 <div style="margin: 2em 0; min-height: 30px;"></div>
 
 
@@ -131,11 +137,13 @@ gantt
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
-  <a href="README.md">Home</a> 
+  <a href="README.md">Home</a> |
   <a href="architecture.md">Architecture</a> |
+  <a href="container-first.md">Container First</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
-  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="getting-started.md">Getting Started</a> |
   <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
   <a href="scripts.md">Scripts</a>
 </div>

@@ -1,5 +1,5 @@
 # Data Pipeline
-This document details the implementation approach and processing flow used to transform Higher Education Statistics Agency (HESA) student data into a dimensional model. It covers the technical implementation of each pipeline phase from initial extraction through dimensional modelling.
+This document details the ETL implementation approach and processing flow used to transform denormalised student data into a dimensional model. It covers the implementation of each pipeline phase from extraction through dimensional modelling.
 
 <div style="margin: 1em 0; min-height: 20px;"></div>
 
@@ -76,11 +76,13 @@ DBT dimension and fact models create the final star schema structure:
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
-  <a href="README.md">Home</a> 
+  <a href="README.md">Home</a> |
   <a href="architecture.md">Architecture</a> |
+  <a href="container-first.md">Container First</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
-  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="getting-started.md">Getting Started</a> |
   <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
   <a href="scripts.md">Scripts</a>
 </div>

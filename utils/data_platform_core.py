@@ -68,13 +68,13 @@ def get_config():
         config = {}
 
         # 1. Load basic environment variables (base directory and config filename)
-        # (try/except handles containerised runs which have no .env file)
-        try:
-            dotenv_file_path = find_dotenv_file()
-            load_dotenv(dotenv_file_path, override=True)
-            print(f"loaded .env from: {dotenv_file_path}")
-        except FileNotFoundError:
-            print(f"No .env file found, using environment variables directly")
+        # Note: .env file load commented out due to container-first approach
+        # try:
+        #     dotenv_file_path = find_dotenv_file()
+        #     load_dotenv(dotenv_file_path, override=True)
+        #     print(f"loaded .env from: {dotenv_file_path}")
+        # except FileNotFoundError:
+        #     print(f"No .env file found, using environment variables directly")
 
         base_dir = os.getenv("BASE_DIR")
         data_dir = os.getenv("DATA_DIR")

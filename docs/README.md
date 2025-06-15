@@ -1,6 +1,5 @@
 # HESA Data Pipeline Project
-This portfolio project demonstrates a data warehouse solution for higher education student data. It showcases a complete ETL pipeline from raw CSV files to dimensional data model, using industry-standard patterns and practices.
-
+This project demonstrates a production-quality data warehouse solution for higher education student data, featuring a complete ETL pipeline from raw CSV files to a dimensional data model. It follows industry-standard patterns and best practices. Comprehensive documentation describes the data, ETL processes, architectural decisions, and step-by-step instructions for setup and execution.
 
 <div style="margin: 1em 0; min-height: 20px;"></div>
 
@@ -9,7 +8,8 @@ This portfolio project demonstrates a data warehouse solution for higher educati
 - [Project Documentation](#project-documentation)
 - [Key Features](#key-features)
 - [Architecture Overview](#architecture-overview)
-- [Getting Started](#getting-started)
+- [Installing and Running](#installing-and-running)
+- [Checking Results](#checking-results)
 - [Automated Testing](#automated-testing)
 
 
@@ -41,6 +41,15 @@ This README provides a high-level overview. For detailed information, please see
 <div style="margin: 1em 0; min-height: 20px;"></div>
 
 
+## Installation
+This project uses a container-first approach for a consistent environment. 
+
+For detailed setup instructions, see [Getting Started](getting-started.md).
+
+
+<div style="margin: 1em 0; min-height: 20px;"></div>
+
+
 ## Architecture Overview
 The solution implements a complete data pipeline with these components:
 
@@ -54,150 +63,37 @@ It reflects real-world practices as could be found in a university data warehous
 
 <div style="margin: 1em 0; min-height: 20px;"></div>
 
-
-## Getting Started
-
-### Note on Python Commands
-This documentation uses `python` to refer to the Python interpreter command. Depending on your system:
-- On Windows: Use `python` 
-- On some Linux/Mac systems: You might need to use `python3` if both Python 2 and 3 are installed
-
-Example:
-```bash
-# Windows
-python utils/create_dim_date.py
-
-# Some Linux/Mac systems with both Python 2 & 3
-python3 utils/create_dim_date.py
-```
-
-### Prerequisites
-1. Clone the repository
-```bash
-   git clone https://github.com/mart-123/data_thru.git
-   cd data_thru
-```
-
-2. Create `.env` file based on `.env.example`
-
-
-### Option 1: Containerised Execution (Recommended)
-
-1. If required, set data and log mappings in `docker-compose.yml` to match local directories (for quick test run, no changes needed):
-```bash
-# Update these paths to match your environment:
-#  [your_data_location]:/app/_mounts/data
-#  [your_logs_location]:/app/_mounts/logs
-nano docker-compose.yml
-```
-
-2. Customise MySQL credentials in `.env`.
-
-3. Start MySQL container
-```bash
-docker compose up -d
-```
-
-4. Create dim_date and load tables (for 22056, 23056, etc):
-```bash
-# If necessary, create and populate dim_date
-docker compose run --rm app python utils/create_dim_date.py
-
-# Repeat for 22056, 23056, etc
-docker compose run --rm app python utils/create_hesa_22056_load_tables.py
-```
-
-5. Run containerised ETL pipeline: 
-```bash
-# Run ETL pipeline (--build if running for first time)
-docker compose --profile etl up --build -d
-
-# To manually re-run pipeline in temporary container (without restarting everything)
-docker compose run --rm app python flows/hesa_nn056_pipeline.py
-```
-
-### Option 2: Local Development Setup
-
-1. Install MySQL and create a database for the project.
-
-2. Customise MySQL credentials in `.env`.
-
-3. Set up Python environment:
-```bash
-# Create virtual environment
-python -m venv venv_dev
-
-# Activate virtual environment
-# On Linux/Mac:
-source venv_dev/bin/activate
-# On Windows:
-# venv_dev\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-4. Create dim_date and load tables (for 22056, 23056, etc):
-```bash
-# If necessary, create and populate dim_date
-python utils/create_dim_date.py
-
-# Repeat for 22056, 23056, etc
-python utils/create_hesa_22056_load_tables.py
-```
-
-5. Run pipeline: `python flows/hesa_nn056_pipeline.py`
-
-
-### Checking Results
-1. Check extract and load logs:
-```bash
-#  (default location <local repo>/data_thru/_mounts/logs)
-cat [your_mounted_path]/logs/etl_info.log
-cat [your_mounted_path]/logs/etl_error.log
-```
-
-2. Check DBT transformation logs:
-For local execution these are written to the console.
-```bash
-# View container output including DBT stages/dimensions/facts
-docker logs data-thru-etl-app
-
-# For live monitoring (follow mode)
-docker logs -f data-thru-etl-app
-```
-
-3. Check for data quality exceptions (e.g. `[your_mounted_path]/data/bad_data/*.csv/`)
-
-4. Run queries against the dimensional model to validate results.
-
+## Installing and Running
+Please refer to separate page 'Getting Started'.
 
 <div style="margin: 1em 0; min-height: 20px;"></div>
 
 
 ## Automated Testing
-A suite of component test scripts and expected results has been build in `/tests/component/`
+Component test suite and expected results are in `/tests/component/` and `/_mounts/data/expected` 
 
-to run an individual test script (with detailed console output):
+To run an individual test script (with detailed console output):
 ```bash
 # --run-etl : if present, test script first runs the script it is testing
-python -m tests.component.run_component_tests
+./run_container_py.sh tests/component/test_stage_hesa_nn056_students.py
 ```
 
-To run all component test scripts:
+To run all component test scripts (and run ETL scripts in each case):
 ```bash
 # --run-etl : if present, each test scripts first run the script it is testing
-python -m tests.component.run_component_tests --run-etl
+./run_container_py.sh tests/component/run_component_tests --run-etl
 ```
 
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
-  <a href="README.md">Home</a> 
+  <a href="README.md">Home</a> |
   <a href="architecture.md">Architecture</a> |
+  <a href="container-first.md">Container First</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
-  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="getting-started.md">Getting Started</a> |
   <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
   <a href="scripts.md">Scripts</a>
 </div>

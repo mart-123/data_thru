@@ -1,5 +1,21 @@
-# Data Warehouse: Star Schema
-The star schema design includes dimension and fact tables as visualised below. For detailed column descriptions and business rules, see the DBT YAML definitions in [`dbt/models/schema.yml`](../dbt/models/schema.yml).
+# Data Warehouse: Star Schema Design
+This document outlines the star schema (dimensional data model) used for the HESA data warehouse. For information about load/stage tables please refer to <a href="pipeline-process.md">Pipeline Process</a>.
+
+It should be noted that, whilst the dataset is a small subset of a typical university data warehouse, it is designed to demonstrate good practice in:
+- ETL development
+- handling time-based datasets
+- dimensional modeling
+- data wrangling for canonical keys
+
+<div style="margin: 1em 0; min-height: 20px;"></div>
+
+## Final Dimensional model
+The final dimensional model consists of:
+- **Main dimension tables** main business entities (students, programs)
+- **Look-up dimensions** descriptive labels (e.g. demographic categories) including canonical keys for historical trend analysis
+- **Fact tables** metrics (student program enrollments) to be analysis by dimensions
+
+For detailed column descriptions and business rules, see the DBT YAML definitions in [`dbt/models/schema.yml`](../dbt/models/schema.yml).
 
 <div style="margin: 1em 0; min-height: 20px;"></div>
 
@@ -88,11 +104,13 @@ erDiagram
 
 <div style="margin: 3em 0 1em 0; border-top: 1px solid #ccc; padding-top: 1em;">
   <strong>Navigation:</strong>
-  <a href="README.md">Home</a> 
+  <a href="README.md">Home</a> |
   <a href="architecture.md">Architecture</a> |
+  <a href="container-first.md">Container First</a> |
   <a href="data-deliveries.md">HESA Deliveries</a> |
   <a href="data-model.md">Data Model</a> |
-  <a href="pipeline-process.md">Pipeline Process</a> |
+  <a href="getting-started.md">Getting Started</a> |
   <a href="hesa-data-info.md">HESA Data Info</a> |
+  <a href="pipeline-process.md">Pipeline Process</a> |
   <a href="scripts.md">Scripts</a>
 </div>
