@@ -9,7 +9,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     command: --performance-schema=OFF --innodb-buffer-pool-size=256M
     ports:
-      - "3307:3306" # External port (3307) maps to internal default port 3306
+      - "${DB_PORT:-3307}:3306" # External port maps to internal default port 3306
     volumes:
       - ./init:/docker-entrypoint-initdb.d # runs permissions script
       - mysql_data:/var/lib/mysql
@@ -34,13 +34,13 @@ services:
 
     environment:
       # Infrastructure settings (for Python ETL and DBT profiles)
-      - DB_HOST=mysql # Service name in Compose
-      - DB_PORT=3306 # Internal port managed by Compose
+      - DB_HOST=${DB_HOST:-mysql} # Service name in Compose
+      - DB_PORT=${DB_PORT:-3306} # Internal port managed by Compose
 
       # Sensitive information (inherited from .env)
-      - DB_USER=${DB_USER}
-      - DB_PWD=${DB_PWD}
-      - DB_NAME=${DB_NAME}
+      - DB_USER=${MYSQL_USER}
+      - DB_PWD=${MYSQL_PASSWORD}
+      - DB_NAME=${MYSQL_DATABASE}
 
       # Main application settings
       - BASE_DIR=/app

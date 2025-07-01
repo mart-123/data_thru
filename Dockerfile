@@ -18,12 +18,12 @@ RUN pip install --no-cache-dir -r requirements.txt dbt-core dbt-mysql
 COPY . .
 
 # Obtain DBT dependencies
-WORKDIR /app/dbt_project
+WORKDIR /app/dbt
 RUN dbt deps
 WORKDIR /app
 
 # Set Python path to include app directory
 ENV PYTHONPATH=/app
 
-# This command on startup keeps the container running indefinitely
+# This start-up command keeps the container running indefinitely
 CMD ["tail", "-f", "/dev/null"]

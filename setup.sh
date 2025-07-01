@@ -27,8 +27,10 @@ sleep 20
 echo "Setting up database permissions..."
 ROOT_PWD=$(grep MYSQL_ROOT_PASSWORD .env | cut -d= -f2)
 DB_NAME=$(grep MYSQL_DATABASE .env | cut -d= -f2)
-ETL_USER=$(grep DB_USER .env | cut -d= -f2)
-docker compose exec mysql mysql -u root -p"${ROOT_PWD}" -e "
+ETL_USER=$(grep MYSQL_USER .env | cut -d= -f2)
+ETL_PWD=$(grep MYSQL_PASSWORD .env | cut -d= -f2)
+
+docker compose exec -e MYSQL_PWD="${ROOT_PWD}" mysql mysql -u root -e "
 CREATE USER IF NOT EXISTS '${ETL_USER}'@'%' IDENTIFIED BY '${ETL_PWD}';
 GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${ETL_USER}'@'%';
 GRANT SELECT ON \`${DB_NAME}\`.* TO '${ETL_USER}'@'%';
