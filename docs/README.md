@@ -1,5 +1,7 @@
 # HESA Data Pipeline Project
-This project demonstrates a production-quality data warehouse solution for higher education student data, featuring a complete ETL pipeline from raw CSV files to a dimensional data model. It follows industry-standard patterns and best practices. Comprehensive documentation describes the data, ETL processes, architectural decisions, and step-by-step instructions for setup and execution.
+This portfolio project demonstrates a production-quality data warehouse solution for higher education student data. Industry-standard patterns and best practices are used to implement an ETL pipeline using Python, DBT, MySQL and Docker Compose. A subset of the HESA student dataset is used to demonstrate data cleansing, transformation, canonical mapping and dimensional modelling.
+
+The following documentation describes the data, ETL flow, scripts, architectural decisions and step-by-step instructions for setup and execution.
 
 <div style="margin: 1em 0; min-height: 20px;"></div>
 
