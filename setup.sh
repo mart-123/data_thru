@@ -13,13 +13,13 @@ chmod -R 755 _mounts/data
 # export UID=$(id -u)
 # export GID=$(id -g)
 
-# Start the MySQL container (localhost, port 3307)
+# Start the MySQL container
 echo "Starting MySQL container..."
 docker compose up -d # no profile - starts MySQL but not ETL
 
 # Wait for MySQL container to start
-echo "Waiting 20 seconds for MySQL to be ready..."
-sleep 20
+echo "Waiting 60 seconds for MySQL to be ready..."
+sleep 60
 
 # Grant privileges to ETL db user (wildcard covers connections
 # from localhost or another container). Note this also occurs

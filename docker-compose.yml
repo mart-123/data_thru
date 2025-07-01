@@ -9,7 +9,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     command: --performance-schema=OFF --innodb-buffer-pool-size=256M
     ports:
-      - "${DB_PORT:-3307}:3306" # External port maps to internal default port 3306
+      - "${LOCAL_DB_PORT:-3307}:3306" # External port maps to internal default port 3306
     volumes:
       - ./init:/docker-entrypoint-initdb.d # runs permissions script
       - mysql_data:/var/lib/mysql
